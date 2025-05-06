@@ -10,6 +10,8 @@ import {
 } from 'lucide-react';
 
 import { useState } from 'react';
+import { Link } from 'react-router-dom';
+
 
 export default function LandingPage() {
   const [email, setEmail] = useState('');
@@ -51,10 +53,12 @@ export default function LandingPage() {
                 Empower your team with analytics and verified property data.
               </p>
               <div className="mt-8 flex flex-col sm:flex-row gap-4">
+              <Link to="/register-company">
                 <button className="bg-blue-500 text-white px-6 py-3 rounded-lg font-medium flex items-center justify-center hover:bg-blue-600 transition transform hover:scale-105 shadow-lg">
                   Register Your Company
                   <ChevronRight className="ml-2 h-5 w-5" />
                 </button>
+              </Link>
                 <button className="bg-white text-blue-900 px-6 py-3 rounded-lg font-medium flex items-center justify-center hover:bg-blue-50 transition transform hover:scale-105 shadow-md">
                   I Have an Invite
                 </button>
