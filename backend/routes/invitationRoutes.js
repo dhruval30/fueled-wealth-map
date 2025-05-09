@@ -7,6 +7,7 @@ const {
   validateInvitation
 } = require('../controllers/invitationController');
 const { protect, authorize } = require('../middleware/auth');
+const invitationController = require('../controllers/invitationController');
 router.get('/company-team', protect, invitationController.getCompanyTeam);
 
 // Public routes
