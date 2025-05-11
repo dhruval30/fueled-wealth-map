@@ -5,9 +5,6 @@ const connectDB = require('./config/db');
 const path = require('path');
 const fs = require('fs');
 
-const userRoutes = require('./routes/userRoutes');
-
-
 // Load env vars
 dotenv.config();
 
@@ -20,20 +17,29 @@ if (!fs.existsSync(uploadsDir)) {
 // Connect to database
 connectDB();
 
+// Import models to ensure they're registered
+require('./models/User');
+require('./models/Company');
+require('./models/Invitation');
+require('./models/SearchHistory');
+require('./models/SavedProperty');
+
 // Route files
 const companyRoutes = require('./routes/companyRoutes');
 const authRoutes = require('./routes/authRoutes');
 const invitationRoutes = require('./routes/invitationRoutes');
+const userRoutes = require('./routes/userRoutes');
+const userDataRoutes = require('./routes/userDataRoutes');
+const analyticsRoutes = require('./routes/analyticsRoutes');
 
 const app = express();
 
-// More permissive CORS configuration
+// CORS configuration
 app.use((req, res, next) => {
   res.header('Access-Control-Allow-Origin', '*');
   res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
   res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization');
   
-  // Handle preflight OPTIONS requests
   if (req.method === 'OPTIONS') {
     return res.status(200).end();
   }
@@ -45,7 +51,7 @@ app.use((req, res, next) => {
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// Add basic test endpoint
+// Test endpoints
 app.get('/api/test', (req, res) => {
   return res.status(200).json({ 
     message: 'Test endpoint working!',
@@ -56,7 +62,6 @@ app.get('/api/test', (req, res) => {
   });
 });
 
-// Health check endpoint
 app.get('/api/health', (req, res) => {
   res.status(200).json({ success: true, message: 'API is healthy' });
 });
@@ -69,6 +74,22 @@ app.use('/api/companies', companyRoutes);
 app.use('/api/auth', authRoutes);
 app.use('/api/invitations', invitationRoutes);
 app.use('/api/users', userRoutes);
+app.use('/api/user', userDataRoutes);
+app.use('/api/analytics', analyticsRoutes);
+
+// Test endpoint for new routes
+app.get('/api/routes-test', (req, res) => {
+  res.json({
+    message: 'New routes mounted successfully',
+    routes: [
+      '/api/user/search-history',
+      '/api/user/saved-properties', 
+      '/api/analytics/company-stats',
+      '/api/analytics/recent-activity',
+      '/api/analytics/export'
+    ]
+  });
+});
 
 // Error handling middleware
 app.use((err, req, res, next) => {
@@ -85,11 +106,15 @@ const PORT = process.env.PORT || 5001;
 
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
+  console.log(`Available routes:`);
+  console.log(`- /api/user/search-history`);
+  console.log(`- /api/user/saved-properties`);
+  console.log(`- /api/analytics/company-stats`);
+  console.log(`- /api/analytics/recent-activity`);
 });
 
 // Handle unhandled promise rejections
 process.on('unhandledRejection', (err, promise) => {
   console.log(`Error: ${err.message}`);
-  // Close server & exit process
   process.exit(1);
 });

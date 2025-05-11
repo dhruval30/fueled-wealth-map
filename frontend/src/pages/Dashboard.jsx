@@ -1,48 +1,182 @@
 import {
-    BarChart3,
-    Building,
-    ChevronRight,
-    Clock,
-    DollarSign, // Add this import
-    Home,
-    LogOut,
-    Map,
-    Menu,
-    PieChart,
-    Plus,
-    Search,
-    Settings,
-    Users,
-    X
+  AlertCircle,
+  BarChart3,
+  Building,
+  CheckCircle,
+  ChevronRight,
+  Clock,
+  DollarSign,
+  Home,
+  LogOut,
+  Map,
+  Menu,
+  PieChart,
+  Plus,
+  Search,
+  Settings,
+  Users,
+  X
 } from 'lucide-react';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+
+// Add these imports
+import PropertyDetails from './PropertyDetails';
+import PropertyMap from './PropertyMap';
+
+// Import your API functions
+import {
+  getCompanyStats,
+  getRecentActivity,
+  getUserSavedProperties,
+  getUserSearchHistory,
+  saveProperty,
+  saveUserSearch
+} from '../services/api';
 
 export default function Dashboard() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
-  const navigate = useNavigate();
+  const [showMap, setShowMap] = useState(false);
+  const [selectedProperty, setSelectedProperty] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [saveStatus, setSaveStatus] = useState(null); // 'saving', 'saved', 'error'
+  const [saveMessage, setSaveMessage] = useState('');
   
   // Get user info from localStorage
-  const userEmail = localStorage.getItem('userEmail') || 'Admin User';
+  const userEmail = localStorage.getItem('userEmail') || 'User';
   const isAdmin = localStorage.getItem('isAdmin') === 'true';
+  const navigate = useNavigate();
   
-  // Mock data for statistics (replace with API data)
-  const stats = {
-    totalProperties: 1245,
-    highValueProperties: 328,
-    newProperties: 57,
-    recentSearches: [
-      { id: 1, query: "Properties in New York", date: "2 hours ago" },
-      { id: 2, query: "Commercial properties valued > $1M", date: "Yesterday" },
-      { id: 3, query: "Residential with >5000 sq ft", date: "3 days ago" }
-    ],
-    topOwners: [
-      { id: 1, name: "Acme Holdings LLC", properties: 24, value: "$42.5M" },
-      { id: 2, name: "Summit Investments", properties: 16, value: "$38.2M" },
-      { id: 3, name: "Parker Family Trust", properties: 12, value: "$27.8M" }
-    ]
+  // State for dashboard data
+  const [stats, setStats] = useState({
+    totalProperties: 0,
+    highValueProperties: 0,
+    newProperties: 0,
+    recentSearches: [],
+    savedProperties: [],
+    topOwners: [],
+    recentActivity: []
+  });
+
+  // Fetch dashboard data on component mount
+  useEffect(() => {
+    fetchDashboardData();
+  }, []);
+
+  const fetchDashboardData = async () => {
+    try {
+      setLoading(true);
+      
+      // Fetch data with fallbacks
+      let searchHistory = { data: [] };
+      let savedProperties = { data: [] };
+      let companyStats = { data: { topOwners: [] } };
+      let recentActivity = { data: [] };
+      
+      try {
+        searchHistory = await getUserSearchHistory();
+      } catch (err) {
+        console.warn('Failed to fetch search history:', err);
+      }
+      
+      try {
+        savedProperties = await getUserSavedProperties();
+      } catch (err) {
+        console.warn('Failed to fetch saved properties:', err);
+      }
+      
+      try {
+        companyStats = await getCompanyStats();
+      } catch (err) {
+        console.warn('Failed to fetch company stats:', err);
+      }
+      
+      try {
+        recentActivity = await getRecentActivity();
+      } catch (err) {
+        console.warn('Failed to fetch recent activity:', err);
+      }
+
+      setStats({
+        totalProperties: companyStats.data?.totalProperties || 0,
+        highValueProperties: companyStats.data?.highValueProperties || 0,
+        newProperties: companyStats.data?.newProperties || 0,
+        recentSearches: searchHistory.data || [],
+        savedProperties: savedProperties.data || [],
+        topOwners: companyStats.data?.topOwners || [],
+        recentActivity: recentActivity.data || []
+      });
+    } catch (err) {
+      console.error('Error fetching dashboard data:', err);
+      setError('Some dashboard data could not be loaded');
+    } finally {
+      setLoading(false);
+    }
   };
-  
+
+  const handlePropertySelect = async (property) => {
+    setSelectedProperty(property);
+    
+    // Save this search
+    try {
+      await saveUserSearch({
+        query: `Property at ${property.fullAddress || getPropertyAddress(property)}`,
+        propertyId: property.identifier?.attomId || property.identifier?.Id,
+        searchType: 'map_click'
+      });
+      
+      // Refresh recent searches
+      const searchHistory = await getUserSearchHistory();
+      setStats(prev => ({
+        ...prev,
+        recentSearches: searchHistory.data || []
+      }));
+    } catch (err) {
+      console.error('Error saving search:', err);
+    }
+  };
+
+  const handleSaveProperty = async (property) => {
+    setSaveStatus('saving');
+    setSaveMessage('Saving property...');
+    
+    try {
+      await saveProperty(property);
+      
+      // Success state
+      setSaveStatus('saved');
+      setSaveMessage('Property saved successfully!');
+      
+      // Refresh data
+      await Promise.all([
+        fetchDashboardData()
+      ]);
+      
+      // Reset status after 2 seconds
+      setTimeout(() => {
+        setSaveStatus(null);
+        setSaveMessage('');
+      }, 2000);
+      
+      // Close property details modal after saving
+      setTimeout(() => {
+        setSelectedProperty(null);
+      }, 1500);
+      
+    } catch (err) {
+      console.error('Error saving property:', err);
+      setSaveStatus('error');
+      setSaveMessage(err === 'Property already saved' ? 'This property is already saved' : 'Failed to save property. Please try again.');
+      
+      // Reset status after 3 seconds
+      setTimeout(() => {
+        setSaveStatus(null);
+        setSaveMessage('');
+      }, 3000);
+    }
+  };
+
   const handleLogout = () => {
     // Clear authentication data
     localStorage.removeItem('authToken');
@@ -53,9 +187,81 @@ export default function Dashboard() {
     // Redirect to login
     navigate('/login');
   };
+
+  const getPropertyAddress = (property) => {
+    if (property.address?.oneLine) return property.address.oneLine;
+    if (property.fullAddress) return property.fullAddress;
+    
+    let address = '';
+    if (property.address?.line1) address += property.address.line1;
+    
+    const parts = [];
+    if (property.address?.city) parts.push(property.address.city);
+    if (property.address?.state) parts.push(property.address.state);
+    if (property.address?.postal1) parts.push(property.address.postal1);
+    
+    if (parts.length > 0) {
+      address += (address ? ', ' : '') + parts.join(', ');
+    }
+    
+    return address || 'Address Unknown';
+  };
+
+  if (loading) {
+    return (
+      <div className="flex h-screen bg-gray-50">
+        <div className="w-64 bg-[#003087]">
+          {/* Sidebar skeleton */}
+        </div>
+        <div className="flex-1 flex items-center justify-center">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-700 mx-auto"></div>
+            <p className="mt-4 text-gray-600">Loading dashboard...</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="flex h-screen bg-gray-50 items-center justify-center">
+        <div className="bg-white p-8 rounded-lg shadow-lg max-w-md w-full">
+          <div className="text-red-500 mb-4">Error</div>
+          <p className="text-gray-600">{error}</p>
+          <button 
+            onClick={fetchDashboardData}
+            className="mt-4 px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
+          >
+            Retry
+          </button>
+        </div>
+      </div>
+    );
+  }
   
   return (
     <div className="flex h-screen bg-gray-50">
+      {/* Save Status Notification */}
+      {saveStatus && (
+        <div className={`fixed top-4 right-4 z-50 p-4 rounded-lg shadow-lg ${
+          saveStatus === 'saving' ? 'bg-blue-50 border-blue-200' :
+          saveStatus === 'saved' ? 'bg-green-50 border-green-200' :
+          'bg-red-50 border-red-200'
+        } border flex items-center space-x-2`}>
+          {saveStatus === 'saving' && <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600"></div>}
+          {saveStatus === 'saved' && <CheckCircle className="h-4 w-4 text-green-600" />}
+          {saveStatus === 'error' && <AlertCircle className="h-4 w-4 text-red-600" />}
+          <span className={`text-sm ${
+            saveStatus === 'saving' ? 'text-blue-700' :
+            saveStatus === 'saved' ? 'text-green-700' :
+            'text-red-700'
+          }`}>
+            {saveMessage}
+          </span>
+        </div>
+      )}
+
       {/* Sidebar */}
       <div className={`bg-[#003087] text-white ${isSidebarOpen ? 'w-64' : 'w-20'} transition-all duration-300 flex flex-col`}>
         {/* Sidebar Header */}
@@ -89,13 +295,13 @@ export default function Dashboard() {
               </a>
             </li>
             <li>
-              <a 
-                href="/property-map" 
-                className="flex items-center px-4 py-3 text-white hover:bg-blue-800"
+              <button 
+                onClick={() => setShowMap(true)}
+                className="w-full flex items-center px-4 py-3 text-white hover:bg-blue-800"
               >
                 <Map className="h-5 w-5" />
                 {isSidebarOpen && <span className="ml-3">Property Map</span>}
-              </a>
+              </button>
             </li>
             <li>
               <a 
@@ -208,7 +414,7 @@ export default function Dashboard() {
               <div>
                 <h3 className="text-gray-500 text-sm font-medium">Total Properties</h3>
                 <p className="text-2xl font-bold text-gray-900">{stats.totalProperties.toLocaleString()}</p>
-                <p className="text-sm text-gray-600">Across all regions</p>
+                <p className="text-sm text-gray-600">Saved in company</p>
               </div>
             </div>
             
@@ -241,19 +447,20 @@ export default function Dashboard() {
             <div className="bg-white rounded-lg shadow col-span-2">
               <div className="p-4 border-b border-gray-200 flex justify-between items-center">
                 <h2 className="text-lg font-medium text-gray-800">Property Map</h2>
-                <a href="/property-map" className="text-blue-600 hover:text-blue-800 text-sm font-medium flex items-center">
-                  View Full Map
+                <button 
+                  onClick={() => setShowMap(true)}
+                  className="text-blue-600 hover:text-blue-800 text-sm font-medium flex items-center"
+                >
+                  Open Full Map
                   <ChevronRight className="h-4 w-4 ml-1" />
-                </a>
+                </button>
               </div>
               <div className="p-4">
-                <div className="bg-gray-100 h-64 rounded flex items-center justify-center">
+                <div className="bg-gray-100 h-64 rounded flex items-center justify-center cursor-pointer" onClick={() => setShowMap(true)}>
                   <div className="text-center">
                     <Map className="h-12 w-12 text-gray-400 mx-auto mb-2" />
-                    <p className="text-gray-500">Interactive map will load here</p>
-                    <a href="/property-map" className="mt-2 inline-block px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 text-sm">
-                      Open Map
-                    </a>
+                    <p className="text-gray-500">Click to open interactive map</p>
+                    <p className="text-sm text-gray-400 mt-1">Explore property data across the US</p>
                   </div>
                 </div>
               </div>
@@ -265,20 +472,21 @@ export default function Dashboard() {
                 <h2 className="text-lg font-medium text-gray-800">Top Property Owners</h2>
               </div>
               <div className="p-4">
-                <ul className="divide-y divide-gray-200">
-                  {stats.topOwners.map((owner) => (
-                    <li key={owner.id} className="py-3 flex justify-between">
-                      <div>
-                        <p className="text-sm font-medium text-gray-900">{owner.name}</p>
-                        <p className="text-sm text-gray-500">{owner.properties} properties</p>
-                      </div>
-                      <span className="text-sm font-semibold text-green-600">{owner.value}</span>
-                    </li>
-                  ))}
-                </ul>
-                <a href="/owners" className="mt-4 block text-center text-sm text-blue-600 hover:text-blue-800 font-medium">
-                  View All Owners
-                </a>
+                {stats.topOwners.length > 0 ? (
+                  <ul className="divide-y divide-gray-200">
+                    {stats.topOwners.map((owner, index) => (
+                      <li key={index} className="py-3 flex justify-between">
+                        <div>
+                          <p className="text-sm font-medium text-gray-900">{owner.name}</p>
+                          <p className="text-sm text-gray-500">{owner.properties} properties</p>
+                        </div>
+                        <span className="text-sm font-semibold text-green-600">{owner.value}</span>
+                      </li>
+                    ))}
+                  </ul>
+                ) : (
+                  <p className="text-gray-500 text-sm">No data available</p>
+                )}
               </div>
             </div>
           </div>
@@ -291,23 +499,24 @@ export default function Dashboard() {
                 <h2 className="text-lg font-medium text-gray-800">Recent Searches</h2>
               </div>
               <div className="p-4">
-                <ul className="divide-y divide-gray-200">
-                  {stats.recentSearches.map((search) => (
-                    <li key={search.id} className="py-3 flex justify-between items-center">
-                      <div className="flex items-center">
-                        <Search className="h-5 w-5 text-gray-400 mr-3" />
-                        <p className="text-sm font-medium text-gray-900">{search.query}</p>
-                      </div>
-                      <div className="flex items-center text-sm text-gray-500">
-                        <Clock className="h-4 w-4 mr-1" />
-                        <span>{search.date}</span>
-                      </div>
-                    </li>
-                  ))}
-                </ul>
-                <a href="/search-history" className="mt-4 block text-center text-sm text-blue-600 hover:text-blue-800 font-medium">
-                  View All Searches
-                </a>
+                {stats.recentSearches.length > 0 ? (
+                  <ul className="divide-y divide-gray-200">
+                    {stats.recentSearches.map((search) => (
+                      <li key={search._id} className="py-3 flex justify-between items-center">
+                        <div className="flex items-center">
+                          <Search className="h-5 w-5 text-gray-400 mr-3" />
+                          <p className="text-sm font-medium text-gray-900">{search.query}</p>
+                        </div>
+                        <div className="flex items-center text-sm text-gray-500">
+                          <Clock className="h-4 w-4 mr-1" />
+                          <span>{new Date(search.createdAt).toLocaleString()}</span>
+                        </div>
+                      </li>
+                    ))}
+                  </ul>
+                ) : (
+                  <p className="text-gray-500 text-sm">No recent searches</p>
+                )}
               </div>
             </div>
             
@@ -318,6 +527,15 @@ export default function Dashboard() {
               </div>
               <div className="p-4">
                 <ul className="space-y-3">
+                  <li>
+                    <button 
+                      onClick={() => setShowMap(true)}
+                      className="w-full flex items-center p-3 bg-gray-50 hover:bg-gray-100 rounded-lg text-gray-800"
+                    >
+                      <Map className="h-5 w-5 text-blue-600 mr-3" />
+                      <span className="text-sm font-medium">Explore Property Map</span>
+                    </button>
+                  </li>
                   <li>
                     <a href="/search" className="flex items-center p-3 bg-gray-50 hover:bg-gray-100 rounded-lg text-gray-800">
                       <Search className="h-5 w-5 text-blue-600 mr-3" />
@@ -344,6 +562,67 @@ export default function Dashboard() {
           </div>
         </div>
       </div>
+      
+      {/* Property Map Modal */}
+      {showMap && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
+          <div className="bg-white rounded-lg w-full max-w-6xl h-full max-h-[80vh] overflow-hidden">
+            <div className="p-4 border-b border-gray-200 flex justify-between items-center">
+              <h2 className="text-lg font-semibold">Property Map</h2>
+              <button 
+                onClick={() => setShowMap(false)}
+                className="text-gray-500 hover:text-gray-700"
+              >
+                <X className="h-6 w-6" />
+              </button>
+            </div>
+            <div className="h-full overflow-auto">
+              <PropertyMap 
+                isOpen={showMap}
+                onClose={() => setShowMap(false)}
+                onPropertySelect={handlePropertySelect}
+                onPropertySaved={handleSaveProperty}
+              />
+            </div>
+          </div>
+        </div>
+      )}
+      
+      {/* Property Details Modal */}
+      {selectedProperty && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
+          <div className="bg-white rounded-lg w-full max-w-4xl max-h-[90vh] overflow-hidden">
+            <div className="p-4 border-b border-gray-200 flex justify-between items-center">
+              <h2 className="text-lg font-semibold">Property Details</h2>
+              <div className="flex items-center gap-2">
+                <button 
+                  onClick={() => handleSaveProperty(selectedProperty)}
+                  disabled={saveStatus === 'saving'}
+                  className={`px-3 py-1 text-sm rounded transition-all ${
+                    saveStatus === 'saved' 
+                      ? 'bg-green-600 text-white cursor-default' 
+                      : saveStatus === 'saving'
+                      ? 'bg-blue-400 text-white cursor-not-allowed'
+                      : 'bg-blue-600 text-white hover:bg-blue-700'
+                  }`}
+                >
+                  {saveStatus === 'saving' && <span className="inline-block animate-spin rounded-full h-3 w-3 border-b-2 border-white mr-1"></span>}
+                  {saveStatus === 'saved' ? 'Saved ✓' : saveStatus === 'saving' ? 'Saving...' : 'Save Property'}
+                </button>
+                <button 
+                  onClick={() => setSelectedProperty(null)}
+                  className="text-gray-500 hover:text-gray-700"
+                >
+                  <X className="h-6 w-6" />
+                </button>
+              </div>
+            </div>
+            <div className="p-6 overflow-auto max-h-[calc(90vh-120px)]">
+              <PropertyDetails property={selectedProperty} />
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

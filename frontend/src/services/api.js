@@ -202,4 +202,162 @@ export const getCompanyTeam = async () => {
   }
 };
 
+export const getUserSearchHistory = async () => {
+  try {
+    const response = await api.get('/user/search-history');
+    return response.data;
+  } catch (error) {
+    if (error.response) {
+      throw error.response.data?.message || 'Failed to get search history';
+    }
+    throw 'Failed to get search history.';
+  }
+};
+
+// Get user's saved properties
+export const getUserSavedProperties = async () => {
+  try {
+    const response = await api.get('/user/saved-properties');
+    return response.data;
+  } catch (error) {
+    if (error.response) {
+      throw error.response.data?.message || 'Failed to get saved properties';
+    }
+    throw 'Failed to get saved properties.';
+  }
+};
+
+// Get company-wide statistics
+export const getCompanyStats = async () => {
+  try {
+    const response = await api.get('/analytics/company-stats');
+    return response.data;
+  } catch (error) {
+    if (error.response) {
+      throw error.response.data?.message || 'Failed to get company statistics';
+    }
+    throw 'Failed to get company statistics.';
+  }
+};
+
+// Save a user's search
+export const saveUserSearch = async (searchData) => {
+  try {
+    const response = await api.post('/user/search-history', searchData);
+    return response.data;
+  } catch (error) {
+    if (error.response) {
+      throw error.response.data?.message || 'Failed to save search';
+    }
+    throw 'Failed to save search.';
+  }
+};
+
+// Save a property for a user
+export const saveProperty = async (propertyData) => {
+  try {
+    const response = await api.post('/user/saved-properties', propertyData);
+    return response.data;
+  } catch (error) {
+    if (error.response) {
+      throw error.response.data?.message || 'Failed to save property';
+    }
+    throw 'Failed to save property.';
+  }
+};
+
+// Get recent company activity
+export const getRecentActivity = async () => {
+  try {
+    const response = await api.get('/analytics/recent-activity');
+    return response.data;
+  } catch (error) {
+    if (error.response) {
+      throw error.response.data?.message || 'Failed to get recent activity';
+    }
+    throw 'Failed to get recent activity.';
+  }
+};
+
+// Search properties with filters
+export const searchProperties = async (searchParams) => {
+  try {
+    const response = await api.post('/properties/search', searchParams);
+    return response.data;
+  } catch (error) {
+    if (error.response) {
+      throw error.response.data?.message || 'Failed to search properties';
+    }
+    throw 'Failed to search properties.';
+  }
+};
+
+// Advanced property search
+export const advancedPropertySearch = async (filters) => {
+  try {
+    const response = await api.post('/properties/advanced-search', filters);
+    return response.data;
+  } catch (error) {
+    if (error.response) {
+      throw error.response.data?.message || 'Failed to perform advanced search';
+    }
+    throw 'Failed to perform advanced search.';
+  }
+};
+
+// Get property details by ID
+export const getPropertyById = async (propertyId) => {
+  try {
+    const response = await api.get(`/properties/${propertyId}`);
+    return response.data;
+  } catch (error) {
+    if (error.response) {
+      throw error.response.data?.message || 'Failed to get property details';
+    }
+    throw 'Failed to get property details.';
+  }
+};
+
+// Export analytics data
+export const exportAnalytics = async (exportParams) => {
+  try {
+    const response = await api.post('/analytics/export', exportParams, {
+      responseType: 'blob'
+    });
+    
+    // Create a download link
+    const url = window.URL.createObjectURL(new Blob([response.data]));
+    const link = document.createElement('a');
+    link.href = url;
+    link.setAttribute('download', `analytics-${Date.now()}.xlsx`);
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+    
+    return true;
+  } catch (error) {
+    if (error.response) {
+      throw error.response.data?.message || 'Failed to export analytics';
+    }
+    throw 'Failed to export analytics.';
+  }
+};
+
+// Save API key
+export const saveApiKey = async (apiKey) => {
+  try {
+    // Store ATTOM API key in localStorage (you might want to store it securely on server)
+    localStorage.setItem('attomApiKey', apiKey);
+    return { success: true };
+  } catch (error) {
+    console.error('Error saving API key:', error);
+    throw 'Failed to save API key.';
+  }
+};
+
+// Get API key
+export const getApiKey = () => {
+  return localStorage.getItem('attomApiKey') || process.env.REACT_APP_ATTOM_API_KEY;
+};
+
 export default api;
