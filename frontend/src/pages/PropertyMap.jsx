@@ -19,7 +19,7 @@ const PropertyMap = ({
   const [currentPopup, setCurrentPopup] = useState(null);
   
   // Get API key from localStorage or environment
-  const attomApiKey = localStorage.getItem('attomApiKey') || process.env.REACT_APP_ATTOM_API_KEY;
+  const attomApiKey = import.meta.env.VITE_ATTOM_API_KEY;
 
   useEffect(() => {
     if (!mapRef.current || !isOpen) return;
@@ -267,7 +267,7 @@ const PropertyMap = ({
   const getOwnerDetails = async (attomId) => {
     try {
       const response = await fetch(
-        `https://api.gateway.attomdata.com/propertyapi/v1.0.0/property/detailowner?attomid=${attomId}`,
+        `https://api.gateway.attomdata.com/propertyapi/v1.0.0/property/detailowner?id=${attomId}`,
         {
           method: 'GET',
           headers: {
