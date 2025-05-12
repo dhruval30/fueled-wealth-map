@@ -38,8 +38,11 @@ const PropertyMap = ({
     }).addTo(mapInstance.current);
 
     // If initial state exists, show the cached property
-    if (initialState?.property && initialState?.showPopup) {
-      displayCachedProperty(initialState.property, initialState.latitude, initialState.longitude);
+    if (initialState?.property) {
+      const latitude = initialState.latitude || initialState.property.location?.latitude || 40.7128;
+      const longitude = initialState.longitude || initialState.property.location?.longitude || -74.0060;
+      console.log("Displaying cached property at:", latitude, longitude);
+      displayCachedProperty(initialState.property, latitude, longitude);
     }
 
     // Handle map clicks

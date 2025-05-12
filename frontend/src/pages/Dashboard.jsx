@@ -1,6 +1,7 @@
 import {
   AlertCircle,
   BarChart3,
+  BookmarkIcon,
   Building,
   CheckCircle,
   ChevronRight,
@@ -14,11 +15,11 @@ import {
   Plus,
   Search,
   Settings,
-  Users,
+  Users, // Add this import for the saved properties icon
   X
 } from 'lucide-react';
 import { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom'; // Add Link import
 
 // Add these imports
 import PropertyDetails from './PropertyDetails';
@@ -27,6 +28,7 @@ import PropertyMap from './PropertyMap';
 // Import your API functions
 import {
   getCompanyStats,
+  getPropertyById,
   getRecentActivity,
   getUserSavedProperties,
   getUserSearchHistory,
@@ -42,6 +44,8 @@ export default function Dashboard() {
   const [error, setError] = useState(null);
   const [saveStatus, setSaveStatus] = useState(null); // 'saving', 'saved', 'error'
   const [saveMessage, setSaveMessage] = useState('');
+  const [mapInitialState, setMapInitialState] = useState(null);
+
   
   // Get user info from localStorage
   const userEmail = localStorage.getItem('userEmail') || 'User';
@@ -118,22 +122,47 @@ export default function Dashboard() {
   const handlePropertySelect = async (property) => {
     setSelectedProperty(property);
     
-    // Save this search
-    try {
-      await saveUserSearch({
-        query: `Property at ${property.fullAddress || getPropertyAddress(property)}`,
-        propertyId: property.identifier?.attomId || property.identifier?.Id,
-        searchType: 'map_click'
-      });
-      
-      // Refresh recent searches
-      const searchHistory = await getUserSearchHistory();
-      setStats(prev => ({
-        ...prev,
-        recentSearches: searchHistory.data || []
-      }));
-    } catch (err) {
-      console.error('Error saving search:', err);
+    // Get property coordinates
+    const propertyLatitude = 
+      property.location?.latitude || 
+      property.address?.latitude || 
+      (property.address?.location?.geometry?.coordinates && property.address.location.geometry.coordinates[1]);
+    
+    const propertyLongitude = 
+      property.location?.longitude || 
+      property.address?.longitude ||
+      (property.address?.location?.geometry?.coordinates && property.address.location.geometry.coordinates[0]);
+    
+    // Check if this property is already in recent searches to avoid duplicates
+    const propertyId = property.identifier?.attomId || property.identifier?.Id || property.attomId;
+    const isAlreadyInSearches = stats.recentSearches.some(search => 
+      search.propertyId === propertyId || 
+      search.query === `Property at ${property.fullAddress || getPropertyAddress(property)}`
+    );
+    
+    // Only save search if it's not already in recent searches
+    if (!isAlreadyInSearches && propertyId) {
+      try {
+        // Save this search with property data
+        await saveUserSearch({
+          query: `Property at ${property.fullAddress || getPropertyAddress(property)}`,
+          propertyId: propertyId,
+          searchType: 'map_click',
+          results: {
+            count: 1,
+            properties: [property] // Include the full property data
+          }
+        });
+        
+        // Refresh recent searches
+        const searchHistory = await getUserSearchHistory();
+        setStats(prev => ({
+          ...prev,
+          recentSearches: searchHistory.data || []
+        }));
+      } catch (err) {
+        console.error('Error saving search:', err);
+      }
     }
   };
 
@@ -186,6 +215,94 @@ export default function Dashboard() {
     
     // Redirect to login
     navigate('/login');
+  };
+
+  const handleSearchClick = async (search) => {
+    // Check if this search has property data already
+    if (search.propertyId && search.results?.properties?.length > 0) {
+      // We have full property data in the search results
+      const propertyData = search.results.properties[0];
+      
+      // Get coordinates
+      const latitude = 
+        propertyData.location?.latitude || 
+        propertyData.address?.latitude || 
+        (propertyData.address?.location?.geometry?.coordinates && propertyData.address.location.geometry.coordinates[1]) || 
+        40.7128; // Default to New York City if no coordinates found
+      
+      const longitude = 
+        propertyData.location?.longitude || 
+        propertyData.address?.longitude || 
+        (propertyData.address?.location?.geometry?.coordinates && propertyData.address.location.geometry.coordinates[0]) || 
+        -74.0060; // Default to New York City if no coordinates found
+      
+      console.log("Setting map initial state with search result property:", propertyData);
+      console.log("Coordinates:", latitude, longitude);
+      
+      // Set initial state for the map
+      setMapInitialState({
+        property: propertyData,
+        latitude: latitude,
+        longitude: longitude,
+        showPopup: true
+      });
+      
+      // Also select the property to show details
+      setSelectedProperty(propertyData);
+      
+      // Open the map
+      setShowMap(true);
+    } else if (search.propertyId) {
+      // We only have the ID but not the full data, we need to fetch it
+      try {
+        setLoading(true);
+        console.log("Fetching property with ID:", search.propertyId);
+        
+        // Get property by ID
+        const propertyData = await getPropertyById(search.propertyId);
+        
+        if (propertyData) {
+          // Get coordinates
+          const latitude = 
+            propertyData.location?.latitude || 
+            propertyData.address?.latitude || 
+            (propertyData.address?.location?.geometry?.coordinates && propertyData.address.location.geometry.coordinates[1]) || 
+            40.7128; // Default to New York City if no coordinates found
+          
+          const longitude = 
+            propertyData.location?.longitude || 
+            propertyData.address?.longitude || 
+            (propertyData.address?.location?.geometry?.coordinates && propertyData.address.location.geometry.coordinates[0]) || 
+            -74.0060; // Default to New York City if no coordinates found
+          
+          console.log("Setting map initial state with fetched property:", propertyData);
+          console.log("Coordinates:", latitude, longitude);
+          
+          // Set initial state for the map
+          setMapInitialState({
+            property: propertyData,
+            latitude: latitude,
+            longitude: longitude,
+            showPopup: true
+          });
+          
+          // Also select the property to show details
+          setSelectedProperty(propertyData);
+        }
+        
+        // Open the map
+        setShowMap(true);
+      } catch (error) {
+        console.error('Error fetching property data:', error);
+        // Show error or open map without initial state
+        setShowMap(true);
+      } finally {
+        setLoading(false);
+      }
+    } else {
+      // Just a text search with no specific property, just open the map
+      setShowMap(true);
+    }
   };
 
   const getPropertyAddress = (property) => {
@@ -320,6 +437,15 @@ export default function Dashboard() {
                 <BarChart3 className="h-5 w-5" />
                 {isSidebarOpen && <span className="ml-3">Analytics</span>}
               </a>
+            </li>
+            <li>
+              <Link 
+                to="/saved-properties" 
+                className="flex items-center px-4 py-3 text-white hover:bg-blue-800"
+              >
+                <BookmarkIcon className="h-5 w-5" />
+                {isSidebarOpen && <span className="ml-3">Saved Properties</span>}
+              </Link>
             </li>
             
             {isAdmin && (
@@ -499,10 +625,14 @@ export default function Dashboard() {
                 <h2 className="text-lg font-medium text-gray-800">Recent Searches</h2>
               </div>
               <div className="p-4">
-                {stats.recentSearches.length > 0 ? (
+              {stats.recentSearches.length > 0 ? (
                   <ul className="divide-y divide-gray-200">
                     {stats.recentSearches.map((search) => (
-                      <li key={search._id} className="py-3 flex justify-between items-center">
+                      <li 
+                        key={search._id} 
+                        className="py-3 flex justify-between items-center hover:bg-gray-50 cursor-pointer"
+                        onClick={() => handleSearchClick(search)}
+                      >
                         <div className="flex items-center">
                           <Search className="h-5 w-5 text-gray-400 mr-3" />
                           <p className="text-sm font-medium text-gray-900">{search.query}</p>
@@ -565,28 +695,35 @@ export default function Dashboard() {
       
       {/* Property Map Modal */}
       {showMap && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
-          <div className="bg-white rounded-lg w-full max-w-6xl h-full max-h-[80vh] overflow-hidden">
-            <div className="p-4 border-b border-gray-200 flex justify-between items-center">
-              <h2 className="text-lg font-semibold">Property Map</h2>
-              <button 
-                onClick={() => setShowMap(false)}
-                className="text-gray-500 hover:text-gray-700"
-              >
-                <X className="h-6 w-6" />
-              </button>
-            </div>
-            <div className="h-full overflow-auto">
-              <PropertyMap 
-                isOpen={showMap}
-                onClose={() => setShowMap(false)}
-                onPropertySelect={handlePropertySelect}
-                onPropertySaved={handleSaveProperty}
-              />
-            </div>
-          </div>
-        </div>
-      )}
+  <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
+    <div className="bg-white rounded-lg w-full max-w-6xl h-full max-h-[80vh] overflow-hidden">
+      <div className="p-4 border-b border-gray-200 flex justify-between items-center">
+        <h2 className="text-lg font-semibold">Property Map</h2>
+        <button 
+          onClick={() => {
+            setShowMap(false);
+            setMapInitialState(null); // Clear the initial state when closing
+          }}
+          className="text-gray-500 hover:text-gray-700"
+        >
+          <X className="h-6 w-6" />
+        </button>
+      </div>
+      <div className="h-full overflow-auto">
+        <PropertyMap 
+          isOpen={showMap}
+          onClose={() => {
+            setShowMap(false);
+            setMapInitialState(null); // Clear the initial state when closing
+          }}
+          onPropertySelect={handlePropertySelect}
+          onPropertySaved={handleSaveProperty}
+          initialState={mapInitialState}
+        />
+      </div>
+    </div>
+  </div>
+)}
       
       {/* Property Details Modal */}
       {selectedProperty && (

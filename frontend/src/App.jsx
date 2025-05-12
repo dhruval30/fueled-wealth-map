@@ -4,8 +4,8 @@ import Dashboard from './pages/Dashboard';
 import LandingPage from './pages/LandingPage';
 import Login from './pages/Login';
 import RegisterCompany from './pages/RegisterCompany';
+import SavedProperties from './pages/SavedProperties';
 import TeamManagement from './pages/TeamManagement';
-
 // Protected Route component
 const ProtectedRoute = ({ children }) => {
   const isAuthenticated = localStorage.getItem('authToken');
@@ -73,6 +73,11 @@ function App() {
             <Dashboard />
           </ProtectedRoute>
         } />
+        <Route path="/saved-properties" element={
+  <ProtectedRoute>
+    <SavedProperties />
+  </ProtectedRoute>
+} />
         <Route path="/settings" element={
           <ProtectedRoute>
             <Dashboard />

@@ -308,9 +308,25 @@ export const advancedPropertySearch = async (filters) => {
 // Get property details by ID
 export const getPropertyById = async (propertyId) => {
   try {
+    // First, try to get from saved properties in cache
+    const savedPropertiesResponse = await api.get('/user/saved-properties');
+    const savedProperties = savedPropertiesResponse.data?.data || [];
+    
+    // Check if the property exists in saved properties
+    const savedProperty = savedProperties.find(p => 
+      p.attomId === propertyId || 
+      p.propertyData?.identifier?.attomId === propertyId
+    );
+    
+    if (savedProperty) {
+      return savedProperty.propertyData;
+    }
+    
+    // If not found in saved properties, try to get from the API
     const response = await api.get(`/properties/${propertyId}`);
-    return response.data;
+    return response.data.data;
   } catch (error) {
+    console.error('Error fetching property:', error);
     if (error.response) {
       throw error.response.data?.message || 'Failed to get property details';
     }
