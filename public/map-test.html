@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Mapbox Marker Test</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <script src="https://api.mapbox.com/mapbox-gl-js/v2.12.0/mapbox-gl.js"></script>
+  <link href="https://api.mapbox.com/mapbox-gl-js/v2.12.0/mapbox-gl.css" rel="stylesheet">
+  <style>
+    body { margin: 0; padding: 0; }
+    #map { position: absolute; top: 0; bottom: 0; width: 100%; }
+    .marker {
+      background-color: #4169E1;
+      width: 20px;
+      height: 20px;
+      border-radius: 50%;
+      border: 3px solid white;
+      box-shadow: 0 0 10px rgba(0,0,0,0.3);
+      cursor: pointer;
+    }
+    .mapboxgl-popup-content {
+      padding: 15px;
+      border-radius: 8px;
+      box-shadow: 0 3px 10px rgba(0,0,0,0.3);
+    }
+  </style>
+</head>
+<body>
+  <div id="map"></div>
+  <script>
+    mapboxgl.accessToken = 'pk.eyJ1IjoiYXNoaXNoZzIyMDkiLCJhIjoiY21hYzdkcjd4MDA2dTJsc2RveHkzMjFhMSJ9.zTrg-kKSZW1UAmvzEvOOCQ';
+    const map = new mapboxgl.Map({
+      container: 'map',
+      style: 'mapbox://styles/mapbox/light-v11',
+      center: [-74.0, 40.73],
+      zoom: 12
+    });
+    
+    map.on('load', function() {
+      // Add some test markers
+      const properties = [
+        {
+          lat: 40.7128,
+          lng: -74.0060,
+          address: '123 Test Street, New York',
+          price: '$750,000'
+        },
+        {
+          lat: 40.7282,
+          lng: -73.9942,
+          address: '456 Sample Avenue, New York',
+          price: '$950,000'
+        }
+      ];
+      
+      properties.forEach(property => {
+        // Create marker element
+        const el = document.createElement('div');
+        el.className = 'marker';
+        
+        // Create popup
+        const popup = new mapboxgl.Popup({ offset: 25 })
+          .setHTML(`
+            <h3>${property.address}</h3>
+            <p>${property.price}</p>
+          `);
+        
+        // Add marker to map
+        const marker = new mapboxgl.Marker(el)
+          .setLngLat([property.lng, property.lat])
+          .setPopup(popup)
+          .addTo(map);
+        
+        // Add click handler
+        el.addEventListener('click', () => {
+          console.log('Marker clicked:', property);
+          popup.addTo(map);
+        });
+      });
+    });
+  </script>
+</body>
+</html>

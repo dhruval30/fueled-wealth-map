@@ -1,0 +1,1451 @@
+{
+  "status": {
+    "version": "1.0.0",
+    "code": 0,
+    "msg": "SuccessWithResult",
+    "total": 30,
+    "page": 1,
+    "pagesize": 30
+  },
+  "property": [
+    {
+      "identifier": {
+        "Id": 169548483,
+        "attomId": 169548483
+      },
+      "lot": {
+        "depth": 122,
+        "frontage": 49,
+        "lotsize1": 0.1394169,
+        "lotsize2": 6073
+      },
+      "location": {
+        "latitude": "47.6062",
+        "longitude": "-122.3321"
+      },
+      "address": {
+        "oneLine": "425 PINE ST, SEATTLE, WA 98101"
+      },
+      "summary": {
+        "propertyType": "APARTMENT HOUSE (5+ UNITS)",
+        "yearbuilt": 2012
+      },
+      "building": {
+        "size": {
+          "bldgsize": 46900
+        },
+        "summary": {
+          "unitsCount": "33"
+        }
+      },
+      "sale": {
+        "saleTransDate": "2010-07-09",
+        "amount": {
+          "saleamt": 8307000
+        }
+      },
+      "assessment": {
+        "assessed": {
+          "assdttlvalue": 5055750
+        },
+        "market": {
+          "mktttlvalue": 10916000
+        },
+        "tax": {
+          "taxamt": 614123.25
+        }
+      }
+    },
+    {
+      "identifier": {
+        "Id": 169548484,
+        "attomId": 169548484
+      },
+      "lot": {
+        "depth": 98,
+        "frontage": 40,
+        "lotsize1": 0.0897521,
+        "lotsize2": 3910
+      },
+      "location": {
+        "latitude": "45.5231",
+        "longitude": "-122.6765"
+      },
+      "address": {
+        "oneLine": "312 BURNSIDE AVE, PORTLAND, OR 97201"
+      },
+      "summary": {
+        "propertyType": "RETAIL BUILDING",
+        "yearbuilt": 2025
+      },
+      "building": {
+        "size": {
+          "bldgsize": 12500
+        },
+        "summary": {
+          "unitsCount": "8"
+        }
+      },
+      "sale": {
+        "saleTransDate": "2015-03-17",
+        "amount": {
+          "saleamt": 6240000
+        }
+      },
+      "assessment": {
+        "assessed": {
+          "assdttlvalue": 2800000
+        },
+        "market": {
+          "mktttlvalue": 7200000
+        },
+        "tax": {
+          "taxamt": 375000
+        }
+      }
+    },
+    {
+      "identifier": {
+        "Id": 169548485,
+        "attomId": 169548485
+      },
+      "lot": {
+        "depth": 100,
+        "frontage": 25,
+        "lotsize1": 0.0574162,
+        "lotsize2": 2500
+      },
+      "location": {
+        "latitude": "37.7749",
+        "longitude": "-122.4194"
+      },
+      "address": {
+        "oneLine": "834 MARKET ST, SAN FRANCISCO, CA 94103"
+      },
+      "summary": {
+        "propertyType": "MIXED USE PROPERTY",
+        "yearbuilt": 1920
+      },
+      "building": {
+        "size": {
+          "bldgsize": 8750
+        },
+        "summary": {
+          "unitsCount": "6"
+        }
+      },
+      "sale": {
+        "saleTransDate": "2018-09-25",
+        "amount": {
+          "saleamt": 7850000
+        }
+      },
+      "assessment": {
+        "assessed": {
+          "assdttlvalue": 3150000
+        },
+        "market": {
+          "mktttlvalue": 8450000
+        },
+        "tax": {
+          "taxamt": 398500
+        }
+      }
+    },
+    {
+      "identifier": {
+        "Id": 169548486,
+        "attomId": 169548486
+      },
+      "lot": {
+        "depth": 105,
+        "frontage": 30,
+        "lotsize1": 0.0723204,
+        "lotsize2": 3150
+      },
+      "location": {
+        "latitude": "34.0522",
+        "longitude": "-118.2437"
+      },
+      "address": {
+        "oneLine": "515 BROADWAY, LOS ANGELES, CA 90012"
+      },
+      "summary": {
+        "propertyType": "WALK-UP APARTMENT",
+        "yearbuilt": 1910
+      },
+      "building": {
+        "size": {
+          "bldgsize": 9400
+        },
+        "summary": {
+          "unitsCount": "12"
+        }
+      },
+      "sale": {
+        "saleTransDate": "2017-04-12",
+        "amount": {
+          "saleamt": 9200000
+        }
+      },
+      "assessment": {
+        "assessed": {
+          "assdttlvalue": 3850000
+        },
+        "market": {
+          "mktttlvalue": 9625000
+        },
+        "tax": {
+          "taxamt": 425000
+        }
+      }
+    },
+    {
+      "identifier": {
+        "Id": 169548487,
+        "attomId": 169548487
+      },
+      "lot": {
+        "depth": 90,
+        "frontage": 35,
+        "lotsize1": 0.0723204,
+        "lotsize2": 3150
+      },
+      "location": {
+        "latitude": "32.7157",
+        "longitude": "-117.1611"
+      },
+      "address": {
+        "oneLine": "722 MARKET ST, SAN DIEGO, CA 92101"
+      },
+      "summary": {
+        "propertyType": "OFFICE BUILDING",
+        "yearbuilt": 1932
+      },
+      "building": {
+        "size": {
+          "bldgsize": 18500
+        },
+        "summary": {
+          "unitsCount": "0"
+        }
+      },
+      "sale": {
+        "saleTransDate": "2019-08-30",
+        "amount": {
+          "saleamt": 15600000
+        }
+      },
+      "assessment": {
+        "assessed": {
+          "assdttlvalue": 7120000
+        },
+        "market": {
+          "mktttlvalue": 15800000
+        },
+        "tax": {
+          "taxamt": 785000
+        }
+      }
+    },
+    {
+      "identifier": {
+        "Id": 169548488,
+        "attomId": 169548488
+      },
+      "lot": {
+        "depth": 75,
+        "frontage": 20,
+        "lotsize1": 0.0344497,
+        "lotsize2": 1500
+      },
+      "location": {
+        "latitude": "33.4484",
+        "longitude": "-112.0740"
+      },
+      "address": {
+        "oneLine": "218 CENTRAL AVE, PHOENIX, AZ 85003"
+      },
+      "summary": {
+        "propertyType": "RETAIL WITH APARTMENTS",
+        "yearbuilt": 1905
+      },
+      "building": {
+        "size": {
+          "bldgsize": 5600
+        },
+        "summary": {
+          "unitsCount": "4"
+        }
+      },
+      "sale": {
+        "saleTransDate": "2016-02-18",
+        "amount": {
+          "saleamt": 4900000
+        }
+      },
+      "assessment": {
+        "assessed": {
+          "assdttlvalue": 2235000
+        },
+        "market": {
+          "mktttlvalue": 4950000
+        },
+        "tax": {
+          "taxamt": 245000
+        }
+      }
+    },
+    {
+      "identifier": {
+        "Id": 169548489,
+        "attomId": 169548489
+      },
+      "lot": {
+        "depth": 115,
+        "frontage": 45,
+        "lotsize1": 0.1191457,
+        "lotsize2": 5175
+      },
+      "location": {
+        "latitude": "36.1699",
+        "longitude": "-115.1398"
+      },
+      "address": {
+        "oneLine": "550 FREMONT ST, LAS VEGAS, NV 89101"
+      },
+      "summary": {
+        "propertyType": "COMMERCIAL BUILDING",
+        "yearbuilt": 1962
+      },
+      "building": {
+        "size": {
+          "bldgsize": 27500
+        },
+        "summary": {
+          "unitsCount": "0"
+        }
+      },
+      "sale": {
+        "saleTransDate": "2014-11-05",
+        "amount": {
+          "saleamt": 18750000
+        }
+      },
+      "assessment": {
+        "assessed": {
+          "assdttlvalue": 8640000
+        },
+        "market": {
+          "mktttlvalue": 19200000
+        },
+        "tax": {
+          "taxamt": 960000
+        }
+      }
+    },
+    {
+      "identifier": {
+        "Id": 169548490,
+        "attomId": 169548490
+      },
+      "lot": {
+        "depth": 85,
+        "frontage": 30,
+        "lotsize1": 0.0585346,
+        "lotsize2": 2550
+      },
+      "location": {
+        "latitude": "39.7392",
+        "longitude": "-104.9903"
+      },
+      "address": {
+        "oneLine": "380 17TH ST, DENVER, CO 80202"
+      },
+      "summary": {
+        "propertyType": "APARTMENT HOUSE (5+ UNITS)",
+        "yearbuilt": 1938
+      },
+      "building": {
+        "size": {
+          "bldgsize": 7500
+        },
+        "summary": {
+          "unitsCount": "9"
+        }
+      },
+      "sale": {
+        "saleTransDate": "2019-02-11",
+        "amount": {
+          "saleamt": 8200000
+        }
+      },
+      "assessment": {
+        "assessed": {
+          "assdttlvalue": 3825000
+        },
+        "market": {
+          "mktttlvalue": 8500000
+        },
+        "tax": {
+          "taxamt": 425000
+        }
+      }
+    },
+    {
+      "identifier": {
+        "Id": 169548491,
+        "attomId": 169548491
+      },
+      "lot": {
+        "depth": 110,
+        "frontage": 40,
+        "lotsize1": 0.1011326,
+        "lotsize2": 4400
+      },
+      "location": {
+        "latitude": "30.2672",
+        "longitude": "-97.7431"
+      },
+      "address": {
+        "oneLine": "512 CONGRESS AVE, AUSTIN, TX 78701"
+      },
+      "summary": {
+        "propertyType": "LUXURY APARTMENT",
+        "yearbuilt": 1985
+      },
+      "building": {
+        "size": {
+          "bldgsize": 32500
+        },
+        "summary": {
+          "unitsCount": "22"
+        }
+      },
+      "sale": {
+        "saleTransDate": "2017-07-21",
+        "amount": {
+          "saleamt": 24750000
+        }
+      },
+      "assessment": {
+        "assessed": {
+          "assdttlvalue": 11250000
+        },
+        "market": {
+          "mktttlvalue": 25000000
+        },
+        "tax": {
+          "taxamt": 1250000
+        }
+      }
+    },
+    {
+      "identifier": {
+        "Id": 169548492,
+        "attomId": 169548492
+      },
+      "lot": {
+        "depth": 95,
+        "frontage": 25,
+        "lotsize1": 0.0545454,
+        "lotsize2": 2375
+      },
+      "location": {
+        "latitude": "32.7767",
+        "longitude": "-96.7970"
+      },
+      "address": {
+        "oneLine": "415 MAIN ST, DALLAS, TX 75201"
+      },
+      "summary": {
+        "propertyType": "BROWNSTONE",
+        "yearbuilt": 1910
+      },
+      "building": {
+        "size": {
+          "bldgsize": 6400
+        },
+        "summary": {
+          "unitsCount": "5"
+        }
+      },
+      "sale": {
+        "saleTransDate": "2018-05-17",
+        "amount": {
+          "saleamt": 9400000
+        }
+      },
+      "assessment": {
+        "assessed": {
+          "assdttlvalue": 4275000
+        },
+        "market": {
+          "mktttlvalue": 9500000
+        },
+        "tax": {
+          "taxamt": 475000
+        }
+      }
+    },
+    {
+      "identifier": {
+        "Id": 169548493,
+        "attomId": 169548493
+      },
+      "lot": {
+        "depth": 100,
+        "frontage": 50,
+        "lotsize1": 0.1148325,
+        "lotsize2": 5000
+      },
+      "location": {
+        "latitude": "29.7604",
+        "longitude": "-95.3698"
+      },
+      "address": {
+        "oneLine": "620 TEXAS AVE, HOUSTON, TX 77002"
+      },
+      "summary": {
+        "propertyType": "APARTMENT HOUSE (5+ UNITS)",
+        "yearbuilt": 1965
+      },
+      "building": {
+        "size": {
+          "bldgsize": 39000
+        },
+        "summary": {
+          "unitsCount": "48"
+        }
+      },
+      "sale": {
+        "saleTransDate": "2016-09-22",
+        "amount": {
+          "saleamt": 22500000
+        }
+      },
+      "assessment": {
+        "assessed": {
+          "assdttlvalue": 10350000
+        },
+        "market": {
+          "mktttlvalue": 23000000
+        },
+        "tax": {
+          "taxamt": 1150000
+        }
+      }
+    },
+    {
+      "identifier": {
+        "Id": 169548494,
+        "attomId": 169548494
+      },
+      "lot": {
+        "depth": 105,
+        "frontage": 35,
+        "lotsize1": 0.0844055,
+        "lotsize2": 3675
+      },
+      "location": {
+        "latitude": "25.7617",
+        "longitude": "-80.1918"
+      },
+      "address": {
+        "oneLine": "315 BRICKELL AVE, MIAMI, FL 33130"
+      },
+      "summary": {
+        "propertyType": "WALK-UP APARTMENT",
+        "yearbuilt": 1925
+      },
+      "building": {
+        "size": {
+          "bldgsize": 15200
+        },
+        "summary": {
+          "unitsCount": "20"
+        }
+      },
+      "sale": {
+        "saleTransDate": "2015-06-07",
+        "amount": {
+          "saleamt": 11200000
+        }
+      },
+      "assessment": {
+        "assessed": {
+          "assdttlvalue": 5400000
+        },
+        "market": {
+          "mktttlvalue": 12000000
+        },
+        "tax": {
+          "taxamt": 600000
+        }
+      }
+    },
+    {
+      "identifier": {
+        "Id": 169548495,
+        "attomId": 169548495
+      },
+      "lot": {
+        "depth": 115,
+        "frontage": 40,
+        "lotsize1": 0.1057359,
+        "lotsize2": 4600
+      },
+      "location": {
+        "latitude": "33.7490",
+        "longitude": "-84.3880"
+      },
+      "address": {
+        "oneLine": "245 PEACHTREE ST, ATLANTA, GA 30303"
+      },
+      "summary": {
+        "propertyType": "MIXED USE PROPERTY",
+        "yearbuilt": 1915
+      },
+      "building": {
+        "size": {
+          "bldgsize": 18500
+        },
+        "summary": {
+          "unitsCount": "15"
+        }
+      },
+      "sale": {
+        "saleTransDate": "2017-11-14",
+        "amount": {
+          "saleamt": 12750000
+        }
+      },
+      "assessment": {
+        "assessed": {
+          "assdttlvalue": 5850000
+        },
+        "market": {
+          "mktttlvalue": 13000000
+        },
+        "tax": {
+          "taxamt": 650000
+        }
+      }
+    },
+    {
+      "identifier": {
+        "Id": 169548496,
+        "attomId": 169548496
+      },
+      "lot": {
+        "depth": 80,
+        "frontage": 25,
+        "lotsize1": 0.0459330,
+        "lotsize2": 2000
+      },
+      "location": {
+        "latitude": "36.1627",
+        "longitude": "-86.7816"
+      },
+      "address": {
+        "oneLine": "520 BROADWAY, NASHVILLE, TN 37203"
+      },
+      "summary": {
+        "propertyType": "RETAIL WITH APARTMENTS",
+        "yearbuilt": 1930
+      },
+      "building": {
+        "size": {
+          "bldgsize": 5800
+        },
+        "summary": {
+          "unitsCount": "6"
+        }
+      },
+      "sale": {
+        "saleTransDate": "2018-03-09",
+        "amount": {
+          "saleamt": 6800000
+        }
+      },
+      "assessment": {
+        "assessed": {
+          "assdttlvalue": 3105000
+        },
+        "market": {
+          "mktttlvalue": 6900000
+        },
+        "tax": {
+          "taxamt": 345000
+        }
+      }
+    },
+    {
+      "identifier": {
+        "Id": 169548497,
+        "attomId": 169548497
+      },
+      "lot": {
+        "depth": 95,
+        "frontage": 35,
+        "lotsize1": 0.0763635,
+        "lotsize2": 3325
+      },
+      "location": {
+        "latitude": "41.8781",
+        "longitude": "-87.6298"
+      },
+      "address": {
+        "oneLine": "420 MICHIGAN AVE, CHICAGO, IL 60601"
+      },
+      "summary": {
+        "propertyType": "WALK-UP APARTMENT",
+        "yearbuilt": 1920
+      },
+      "building": {
+        "size": {
+          "bldgsize": 10500
+        },
+        "summary": {
+          "unitsCount": "14"
+        }
+      },
+      "sale": {
+        "saleTransDate": "2016-11-24",
+        "amount": {
+          "saleamt": 10100000
+        }
+      },
+      "assessment": {
+        "assessed": {
+          "assdttlvalue": 4590000
+        },
+        "market": {
+          "mktttlvalue": 10200000
+        },
+        "tax": {
+          "taxamt": 510000
+        }
+      }
+    },
+    {
+      "identifier": {
+        "Id": 169548498,
+        "attomId": 169548498
+      },
+      "lot": {
+        "depth": 110,
+        "frontage": 45,
+        "lotsize1": 0.1136364,
+        "lotsize2": 4950
+      },
+      "location": {
+        "latitude": "42.3314",
+        "longitude": "-83.0458"
+      },
+      "address": {
+        "oneLine": "650 WOODWARD AVE, DETROIT, MI 48226"
+      },
+      "summary": {
+        "propertyType": "OFFICE BUILDING",
+        "yearbuilt": 1945
+      },
+      "building": {
+        "size": {
+          "bldgsize": 22500
+        },
+        "summary": {
+          "unitsCount": "0"
+        }
+      },
+      "sale": {
+        "saleTransDate": "2015-08-17",
+        "amount": {
+          "saleamt": 17200000
+        }
+      },
+      "assessment": {
+        "assessed": {
+          "assdttlvalue": 7875000
+        },
+        "market": {
+          "mktttlvalue": 17500000
+        },
+        "tax": {
+          "taxamt": 875000
+        }
+      }
+    },
+    {
+      "identifier": {
+        "Id": 169548499,
+        "attomId": 169548499
+      },
+      "lot": {
+        "depth": 90,
+        "frontage": 30,
+        "lotsize1": 0.0620496,
+        "lotsize2": 2700
+      },
+      "location": {
+        "latitude": "41.4993",
+        "longitude": "-81.6944"
+      },
+      "address": {
+        "oneLine": "350 PUBLIC SQUARE, CLEVELAND, OH 44113"
+      },
+      "summary": {
+        "propertyType": "HOTEL",
+        "yearbuilt": 2010
+      },
+      "building": {
+        "size": {
+          "bldgsize": 25000
+        },
+        "summary": {
+          "unitsCount": "45"
+        }
+      },
+      "sale": {
+        "saleTransDate": "2019-05-03",
+        "amount": {
+          "saleamt": 19500000
+        }
+      },
+      "assessment": {
+        "assessed": {
+          "assdttlvalue": 8910000
+        },
+        "market": {
+          "mktttlvalue": 19800000
+        },
+        "tax": {
+          "taxamt": 990000
+        }
+      }
+    },
+    {
+      "identifier": {
+        "Id": 169548500,
+        "attomId": 169548500
+      },
+      "lot": {
+        "depth": 100,
+        "frontage": 40,
+        "lotsize1": 0.0918660,
+        "lotsize2": 4000
+      },
+      "location": {
+        "latitude": "39.9526",
+        "longitude": "-75.1652"
+      },
+      "address": {
+        "oneLine": "225 MARKET ST, PHILADELPHIA, PA 19102"
+      },
+      "summary": {
+        "propertyType": "APARTMENT HOUSE (5+ UNITS)",
+        "yearbuilt": 1990
+      },
+      "building": {
+        "size": {
+          "bldgsize": 28500
+        },
+        "summary": {
+          "unitsCount": "36"
+        }
+      },
+      "sale": {
+        "saleTransDate": "2017-02-16",
+        "amount": {
+          "saleamt": 21250000
+        }
+      },
+      "assessment": {
+        "assessed": {
+          "assdttlvalue": 9675000
+        },
+        "market": {
+          "mktttlvalue": 21500000
+        },
+        "tax": {
+          "taxamt": 1075000
+        }
+      }
+    },
+    {
+      "identifier": {
+        "Id": 169548501,
+        "attomId": 169548501
+      },
+      "lot": {
+        "depth": 85,
+        "frontage": 25,
+        "lotsize1": 0.0487603,
+        "lotsize2": 2125
+      },
+      "location": {
+        "latitude": "38.9072",
+        "longitude": "-77.0369"
+      },
+      "address": {
+        "oneLine": "600 PENNSYLVANIA AVE, WASHINGTON, DC 20001"
+      },
+      "summary": {
+        "propertyType": "BROWNSTONE",
+        "yearbuilt": 1900
+      },
+      "building": {
+        "size": {
+          "bldgsize": 6800
+        },
+        "summary": {
+          "unitsCount": "1"
+        }
+      },
+      "sale": {
+        "saleTransDate": "2018-12-05",
+        "amount": {
+          "saleamt": 12100000
+        }
+      },
+      "assessment": {
+        "assessed": {
+          "assdttlvalue": 5535000
+        },
+        "market": {
+          "mktttlvalue": 12300000
+        },
+        "tax": {
+          "taxamt": 615000
+        }
+      }
+    },
+    {
+      "identifier": {
+        "Id": 169548502,
+        "attomId": 169548502
+      },
+      "lot": {
+        "depth": 95,
+        "frontage": 30,
+        "lotsize1": 0.0654339,
+        "lotsize2": 2850
+      },
+      "location": {
+        "latitude": "42.3601",
+        "longitude": "-71.0589"
+      },
+      "address": {
+        "oneLine": "220 TREMONT ST, BOSTON, MA 02108"
+      },
+      "summary": {
+        "propertyType": "APARTMENT HOUSE (5+ UNITS)",
+        "yearbuilt": 1970
+      },
+      "building": {
+        "size": {
+          "bldgsize": 19500
+        },
+        "summary": {
+          "unitsCount": "25"
+        }
+      },
+      "sale": {
+        "saleTransDate": "2016-07-12",
+        "amount": {
+          "saleamt": 16800000
+        }
+      },
+      "assessment": {
+        "assessed": {
+          "assdttlvalue": 7695000
+        },
+        "market": {
+          "mktttlvalue": 17100000
+        },
+        "tax": {
+          "taxamt": 855000
+        }
+      }
+    },
+    {
+      "identifier": {
+        "Id": 169548503,
+        "attomId": 169548503
+      },
+      "lot": {
+        "depth": 105,
+        "frontage": 50,
+        "lotsize1": 0.1205579,
+        "lotsize2": 5250
+      },
+      "location": {
+        "latitude": "40.7128",
+        "longitude": "-74.0060"
+      },
+      "address": {
+        "oneLine": "84 WHITE ST, NEW YORK, NY 10007"
+      },
+      "summary": {
+        "propertyType": "OFFICE BUILDING",
+        "yearbuilt": 1950
+      },
+      "building": {
+        "size": {
+          "bldgsize": 35000
+        },
+        "summary": {
+          "unitsCount": "0"
+        }
+      },
+      "sale": {
+        "saleTransDate": "2017-05-22",
+        "amount": {
+          "saleamt": 27500000
+        }
+      },
+      "assessment": {
+        "assessed": {
+          "assdttlvalue": 12375000
+        },
+        "market": {
+          "mktttlvalue": 27500000
+        },
+        "tax": {
+          "taxamt": 1375000
+        }
+      }
+    },
+    {
+      "identifier": {
+        "Id": 169548504,
+        "attomId": 169548504
+      },
+      "lot": {
+        "depth": 120,
+        "frontage": 45,
+        "lotsize1": 0.1239669,
+        "lotsize2": 5400
+      },
+      "location": {
+        "latitude": "21.3069",
+        "longitude": "-157.8583"
+      },
+      "address": {
+        "oneLine": "415 KING ST, HONOLULU, HI 96813"
+      },
+      "summary": {
+        "propertyType": "HOTEL",
+        "yearbuilt": 1980
+      },
+      "building": {
+        "size": {
+          "bldgsize": 42000
+        },
+        "summary": {
+          "unitsCount": "60"
+        }
+      },
+      "sale": {
+        "saleTransDate": "2018-10-15",
+        "amount": {
+          "saleamt": 31500000
+        }
+      },
+      "assessment": {
+        "assessed": {
+          "assdttlvalue": 14175000
+        },
+        "market": {
+          "mktttlvalue": 31500000
+        },
+        "tax": {
+          "taxamt": 1575000
+        }
+      }
+    },
+    {
+      "identifier": {
+        "Id": 169548505,
+        "attomId": 169548505
+      },
+      "lot": {
+        "depth": 110,
+        "frontage": 38,
+        "lotsize1": 0.0960248,
+        "lotsize2": 4180
+      },
+      "location": {
+        "latitude": "61.2181",
+        "longitude": "-149.9003"
+      },
+      "address": {
+        "oneLine": "325 4TH AVE, ANCHORAGE, AK 99501"
+      },
+      "summary": {
+        "propertyType": "COMMERCIAL BUILDING",
+        "yearbuilt": 1975
+      },
+      "building": {
+        "size": {
+          "bldgsize": 15800
+        },
+        "summary": {
+          "unitsCount": "0"
+        }
+      },
+      "sale": {
+        "saleTransDate": "2016-04-10",
+        "amount": {
+          "saleamt": 13400000
+        }
+      },
+      "assessment": {
+        "assessed": {
+          "assdttlvalue": 6030000
+        },
+        "market": {
+          "mktttlvalue": 13400000
+        },
+        "tax": {
+          "taxamt": 670000
+        }
+      }
+    },
+    {
+      "identifier": {
+        "Id": 169548506,
+        "attomId": 169548506
+      },"lot": {
+        "depth": 100,
+        "frontage": 42,
+        "lotsize1": 0.0964764,
+        "lotsize2": 4200
+      },
+      "location": {
+        "latitude": "43.6591",
+        "longitude": "-70.2568"
+      },
+      "address": {
+        "oneLine": "280 CONGRESS ST, PORTLAND, ME 04101"
+      },
+      "summary": {
+        "propertyType": "MIXED USE PROPERTY",
+        "yearbuilt": 1905
+      },
+      "building": {
+        "size": {
+          "bldgsize": 14500
+        },
+        "summary": {
+          "unitsCount": "12"
+        }
+      },
+      "sale": {
+        "saleTransDate": "2016-08-15",
+        "amount": {
+          "saleamt": 8750000
+        }
+      },
+      "assessment": {
+        "assessed": {
+          "assdttlvalue": 3937500
+        },
+        "market": {
+          "mktttlvalue": 8750000
+        },
+        "tax": {
+          "taxamt": 437500
+        }
+      }
+    },
+    {
+      "identifier": {
+        "Id": 169548507,
+        "attomId": 169548507
+      },
+      "lot": {
+        "depth": 115,
+        "frontage": 40,
+        "lotsize1": 0.1057359,
+        "lotsize2": 4600
+      },
+      "location": {
+        "latitude": "44.9778",
+        "longitude": "-93.2650"
+      },
+      "address": {
+        "oneLine": "515 NICOLLET MALL, MINNEAPOLIS, MN 55401"
+      },
+      "summary": {
+        "propertyType": "OFFICE BUILDING",
+        "yearbuilt": 1985
+      },
+      "building": {
+        "size": {
+          "bldgsize": 28000
+        },
+        "summary": {
+          "unitsCount": "0"
+        }
+      },
+      "sale": {
+        "saleTransDate": "2015-10-28",
+        "amount": {
+          "saleamt": 23500000
+        }
+      },
+      "assessment": {
+        "assessed": {
+          "assdttlvalue": 10575000
+        },
+        "market": {
+          "mktttlvalue": 23500000
+        },
+        "tax": {
+          "taxamt": 1175000
+        }
+      }
+    },
+    {
+      "identifier": {
+        "Id": 169548508,
+        "attomId": 169548508
+      },
+      "lot": {
+        "depth": 95,
+        "frontage": 35,
+        "lotsize1": 0.0763635,
+        "lotsize2": 3325
+      },
+      "location": {
+        "latitude": "39.0997",
+        "longitude": "-94.5786"
+      },
+      "address": {
+        "oneLine": "433 GRAND BLVD, KANSAS CITY, MO 64105"
+      },
+      "summary": {
+        "propertyType": "RETAIL BUILDING",
+        "yearbuilt": 1920
+      },
+      "building": {
+        "size": {
+          "bldgsize": 12800
+        },
+        "summary": {
+          "unitsCount": "6"
+        }
+      },
+      "sale": {
+        "saleTransDate": "2017-09-14",
+        "amount": {
+          "saleamt": 9800000
+        }
+      },
+      "assessment": {
+        "assessed": {
+          "assdttlvalue": 4410000
+        },
+        "market": {
+          "mktttlvalue": 9800000
+        },
+        "tax": {
+          "taxamt": 490000
+        }
+      }
+    },
+    {
+      "identifier": {
+        "Id": 169548509,
+        "attomId": 169548509
+      },
+      "lot": {
+        "depth": 105,
+        "frontage": 35,
+        "lotsize1": 0.0844055,
+        "lotsize2": 3675
+      },
+      "location": {
+        "latitude": "29.9511",
+        "longitude": "-90.0715"
+      },
+      "address": {
+        "oneLine": "620 BOURBON ST, NEW ORLEANS, LA 70112"
+      },
+      "summary": {
+        "propertyType": "RETAIL WITH APARTMENTS",
+        "yearbuilt": 1895
+      },
+      "building": {
+        "size": {
+          "bldgsize": 9500
+        },
+        "summary": {
+          "unitsCount": "8"
+        }
+      },
+      "sale": {
+        "saleTransDate": "2018-03-22",
+        "amount": {
+          "saleamt": 7400000
+        }
+      },
+      "assessment": {
+        "assessed": {
+          "assdttlvalue": 3330000
+        },
+        "market": {
+          "mktttlvalue": 7400000
+        },
+        "tax": {
+          "taxamt": 370000
+        }
+      }
+    },
+    {
+      "identifier": {
+        "Id": 169548510,
+        "attomId": 169548510
+      },
+      "lot": {
+        "depth": 110,
+        "frontage": 45,
+        "lotsize1": 0.1136364,
+        "lotsize2": 4950
+      },
+      "location": {
+        "latitude": "35.2271",
+        "longitude": "-80.8431"
+      },
+      "address": {
+        "oneLine": "312 TRYON ST, CHARLOTTE, NC 28202"
+      },
+      "summary": {
+        "propertyType": "OFFICE BUILDING",
+        "yearbuilt": 1995
+      },
+      "building": {
+        "size": {
+          "bldgsize": 26500
+        },
+        "summary": {
+          "unitsCount": "0"
+        }
+      },
+      "sale": {
+        "saleTransDate": "2016-05-19",
+        "amount": {
+          "saleamt": 19200000
+        }
+      },
+      "assessment": {
+        "assessed": {
+          "assdttlvalue": 8640000
+        },
+        "market": {
+          "mktttlvalue": 19200000
+        },
+        "tax": {
+          "taxamt": 960000
+        }
+      }
+    },
+    {
+      "identifier": {
+        "Id": 169548511,
+        "attomId": 169548511
+      },
+      "lot": {
+        "depth": 90,
+        "frontage": 30,
+        "lotsize1": 0.0620496,
+        "lotsize2": 2700
+      },
+      "location": {
+        "latitude": "39.7684",
+        "longitude": "-86.1581"
+      },
+      "address": {
+        "oneLine": "150 WASHINGTON ST, INDIANAPOLIS, IN 46204"
+      },
+      "summary": {
+        "propertyType": "HOTEL",
+        "yearbuilt": 2005
+      },
+      "building": {
+        "size": {
+          "bldgsize": 18600
+        },
+        "summary": {
+          "unitsCount": "35"
+        }
+      },
+      "sale": {
+        "saleTransDate": "2019-01-10",
+        "amount": {
+          "saleamt": 15700000
+        }
+      },
+      "assessment": {
+        "assessed": {
+          "assdttlvalue": 7065000
+        },
+        "market": {
+          "mktttlvalue": 15700000
+        },
+        "tax": {
+          "taxamt": 785000
+        }
+      }
+    },
+    {
+      "identifier": {
+        "Id": 169548512,
+        "attomId": 169548512
+      },
+      "lot": {
+        "depth": 120,
+        "frontage": 50,
+        "lotsize1": 0.1377990,
+        "lotsize2": 6000
+      },
+      "location": {
+        "latitude": "28.5383",
+        "longitude": "-81.3792"
+      },
+      "address": {
+        "oneLine": "350 ORANGE AVE, ORLANDO, FL 32801"
+      },
+      "summary": {
+        "propertyType": "COMMERCIAL BUILDING",
+        "yearbuilt": 1980
+      },
+      "building": {
+        "size": {
+          "bldgsize": 31500
+        },
+        "summary": {
+          "unitsCount": "0"
+        }
+      },
+      "sale": {
+        "saleTransDate": "2017-12-08",
+        "amount": {
+          "saleamt": 24850000
+        }
+      },
+      "assessment": {
+        "assessed": {
+          "assdttlvalue": 11182500
+        },
+        "market": {
+          "mktttlvalue": 24850000
+        },
+        "tax": {
+          "taxamt": 1242500
+        }
+      }
+    }
+  ]
+}

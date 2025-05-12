@@ -1,0 +1,87 @@
+/* Map container */
+.mapboxgl-map {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen,
+    Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+}
+
+/* Marker styling */
+.property-marker {
+  width: 25px !important;
+  height: 25px !important;
+  background-color: #4169E1 !important;
+  border-radius: 50% !important;
+  border: 3px solid white !important;
+  box-shadow: 0 0 10px rgba(0,0,0,0.3) !important;
+  cursor: pointer !important;
+  transition: all 0.2s ease !important;
+  position: relative !important;
+  z-index: 1 !important;
+}
+
+.property-marker:hover {
+  transform: scale(1.2) !important;
+  background-color: #1E40AF !important;
+  z-index: 10 !important;
+}
+
+.property-marker::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 2;
+  background: transparent;
+  border-radius: 50%;
+}
+
+/* Make the entire marker clickable */
+.mapboxgl-marker {
+  cursor: pointer !important;
+  z-index: 1 !important;
+}
+
+.mapboxgl-marker:hover {
+  z-index: 10 !important;
+}
+
+/* Popup styling */
+.mapboxgl-popup {
+  z-index: 20 !important;
+}
+
+.mapboxgl-popup-content {
+  padding: 0 !important;
+  border-radius: 8px !important;
+  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.3) !important;
+  border: 1px solid rgba(0, 0, 0, 0.1) !important;
+  overflow: hidden !important;
+}
+
+.mapboxgl-popup-close-button {
+  font-size: 18px !important;
+  font-weight: bold !important;
+  color: #4B5563 !important;
+  padding: 5px 8px !important;
+  right: 5px !important;
+  top: 5px !important;
+  z-index: 10 !important;
+}
+
+.mapboxgl-popup-close-button:hover {
+  background-color: rgba(0, 0, 0, 0.05) !important;
+  color: #1F2937 !important;
+}
+
+/* Override mapbox popup to make it more visible */
+.mapboxgl-popup {
+  font-size: 14px !important;
+}
+
+.mapboxgl-popup-content h3 {
+  margin-top: 0 !important;
+  margin-bottom: 8px !important;
+  font-size: 16px !important;
+  color: #1F2937 !important;
+}
