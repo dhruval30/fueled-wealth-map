@@ -1,8 +1,10 @@
+// Updated userDataRoutes.js for GridFS
 const express = require('express');
 const router = express.Router();
 const { protect } = require('../middleware/auth');
 const SearchHistory = require('../models/SearchHistory');
 const SavedProperty = require('../models/SavedProperty');
+const { captureStreetView } = require('../utils/streetViewCapture');
 
 // Get user's search history
 router.get('/search-history', protect, async (req, res) => {
@@ -14,16 +16,24 @@ router.get('/search-history', protect, async (req, res) => {
     .limit(50)
     .lean();
 
-    // Format the searches for display
-    const formattedSearches = searchHistory.map(search => ({
-      _id: search._id,
-      query: search.query,
-      searchType: search.searchType,
-      createdAt: search.createdAt,
-      user: search.user,
-      propertyId: search.propertyId,
-      results: search.results
-    }));
+    // Format the searches for display - transform GridFS filenames to URLs
+    const formattedSearches = searchHistory.map(search => {
+      // Create URL for street view image if it exists
+      const streetViewUrl = search.streetViewImage 
+        ? `/api/images/streetview/${search.streetViewImage}` 
+        : null;
+      
+      return {
+        _id: search._id,
+        query: search.query,
+        searchType: search.searchType,
+        createdAt: search.createdAt,
+        user: search.user,
+        propertyId: search.propertyId,
+        results: search.results,
+        streetViewImage: streetViewUrl
+      };
+    });
 
     res.status(200).json({
       success: true,
@@ -40,7 +50,7 @@ router.get('/search-history', protect, async (req, res) => {
   }
 });
 
-// Save user search
+// Save user search - Decoupled from street view capture, works with GridFS
 router.post('/search-history', protect, async (req, res) => {
   try {
     const searchData = {
@@ -53,13 +63,32 @@ router.post('/search-history', protect, async (req, res) => {
       results: {
         count: req.body.results?.count || 0,
         properties: req.body.results?.properties || []
-      }
+      },
+      streetViewImage: null // Initialize with null, will be updated asynchronously
     };
 
+    // First create the search record without the street view image
     const search = await SearchHistory.create(searchData);
-
     console.log('Search saved:', searchData);
+    
+    // If this is a property search and has an address, trigger street view capture
+    // in the background without waiting for it
+    if (searchData.searchType === 'map_click' && searchData.propertyId && 
+        searchData.results.properties && searchData.results.properties.length > 0) {
+      
+      const property = searchData.results.properties[0];
+      const address = property.fullAddress || getPropertyAddress(property);
+      const propertyId = searchData.propertyId;
+      const searchId = search._id;
+      
+      // Process the street view capture in the background
+      setTimeout(() => {
+        processStreetViewCapture(address, propertyId, searchId)
+          .catch(err => console.error('Background street view capture failed:', err));
+      }, 100);
+    }
 
+    // Return immediately with the search object
     res.status(201).json({
       success: true,
       data: search
@@ -73,6 +102,50 @@ router.post('/search-history', protect, async (req, res) => {
     });
   }
 });
+
+// Function to process street view capture in the background - now using GridFS
+async function processStreetViewCapture(address, propertyId, searchId) {
+  try {
+    console.log(`Starting background street view capture for property ${propertyId}`);
+    
+    // Capture street view image and store in GridFS - returns the filename
+    const filename = await captureStreetView(address, propertyId);
+    
+    if (filename) {
+      // Update the search record with the filename for GridFS
+      await SearchHistory.findByIdAndUpdate(searchId, { 
+        streetViewImage: filename 
+      });
+      
+      console.log(`Street view image captured and saved to GridFS for property ${propertyId}: ${filename}`);
+    } else {
+      console.log(`No street view image could be captured for property ${propertyId}`);
+    }
+  } catch (err) {
+    console.error(`Error in background street view capture for property ${propertyId}:`, err);
+  }
+}
+
+// Helper function to get property address from different formats
+function getPropertyAddress(property) {
+  if (!property) return 'Unknown Address';
+  
+  if (property.address?.oneLine) return property.address.oneLine;
+  
+  let address = '';
+  if (property.address?.line1) address += property.address.line1;
+  
+  const parts = [];
+  if (property.address?.city) parts.push(property.address.city);
+  if (property.address?.state) parts.push(property.address.state);
+  if (property.address?.postal1) parts.push(property.address.postal1);
+  
+  if (parts.length > 0) {
+    address += (address ? ', ' : '') + parts.join(', ');
+  }
+  
+  return address || 'Unknown Address';
+}
 
 // Get user's saved properties
 router.get('/saved-properties', protect, async (req, res) => {

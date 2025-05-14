@@ -1,17 +1,186 @@
+// Updated PropertyDetails.jsx with enhanced map loading state
 import {
   Building,
   Calendar,
   DollarSign,
   Home,
   Info,
+  Loader2,
+  Map,
   MapPin,
   Maximize2,
+  RefreshCw,
   User
 } from 'lucide-react';
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 
 const PropertyDetails = ({ property }) => {
   const [activeTab, setActiveTab] = useState('overview');
+  const [streetViewStatus, setStreetViewStatus] = useState('checking'); // 'checking', 'loading', 'loaded', 'error'
+  const [checkAttempts, setCheckAttempts] = useState(0);
+  const [streetViewUrl, setStreetViewUrl] = useState(null);
+  const [isRetrying, setIsRetrying] = useState(false);
+  const [loadingText, setLoadingText] = useState('Checking for street view image...');
+
+  // Check if property has street view image or try to construct the path
+  useEffect(() => {
+    // Reset status when property changes
+    setStreetViewStatus('checking');
+    setCheckAttempts(0);
+    setStreetViewUrl(null);
+    setIsRetrying(false);
+    setLoadingText('Checking for street view image...');
+    
+    let intervalId = null;
+    let timeoutId = null;
+    
+    // If property already has a streetViewImage, use it
+    if (property.streetViewImage) {
+      setStreetViewUrl(property.streetViewImage);
+      setStreetViewStatus('loaded');
+      return () => {
+        if (intervalId) clearInterval(intervalId);
+        if (timeoutId) clearTimeout(timeoutId);
+      };
+    }
+    
+    // Otherwise, try to construct a potential URL if we have a property ID
+    const propertyId = property.identifier?.attomId || property.attomId;
+    if (propertyId) {
+      // First check the status endpoint to see if image is being processed
+      const checkStatus = async () => {
+        try {
+          const response = await fetch(`/api/images/streetview-status/${propertyId}`);
+          if (response.ok) {
+            const data = await response.json();
+            
+            if (data.status === 'complete') {
+              // Image is ready
+              setStreetViewUrl(data.url);
+              setStreetViewStatus('loaded');
+              return true; // Done checking
+            } else if (data.status === 'processing') {
+              // Image is being processed, show loading state with specific text
+              setStreetViewStatus('loading');
+              
+              // Update loading text based on where we are in the process
+              if (data.elapsedSeconds) {
+                if (data.elapsedSeconds < 5) {
+                  setLoadingText('Locating property on map...');
+                } else if (data.elapsedSeconds < 10) {
+                  setLoadingText('Looking for street view data...');
+                } else if (data.elapsedSeconds < 15) {
+                  setLoadingText('Getting street view imagery...');
+                } else {
+                  setLoadingText('Finalizing street view capture...');
+                }
+              } else {
+                // Rotate through loading messages if we don't have elapsed time
+                const messages = [
+                  'Locating property on map...',
+                  'Looking for street view data...',
+                  'Getting street view imagery...',
+                  'Finalizing street view capture...'
+                ];
+                setLoadingText(messages[checkAttempts % messages.length]);
+              }
+              
+              setCheckAttempts(prev => Math.min(prev + 1, 10));
+              return false; // Continue checking
+            } else {
+              // Image not found and not being processed
+              setStreetViewStatus('error');
+              return true; // Done checking
+            }
+          } else {
+            // Error checking status
+            console.error('Error checking street view status:', response.statusText);
+            setStreetViewStatus('error');
+            return true; // Done checking
+          }
+        } catch (error) {
+          console.error('Error checking street view status:', error);
+          setStreetViewStatus('error');
+          return true; // Done checking
+        }
+      };
+      
+      // Add a simulated delay to show the checking state (better UX)
+      timeoutId = setTimeout(() => {
+        if (streetViewStatus === 'checking') {
+          setStreetViewStatus('loading');
+          setLoadingText('Connecting to mapping service...');
+        }
+      }, 1000);
+      
+      // Do initial check
+      checkStatus();
+      
+      // Set up periodic checks
+      intervalId = setInterval(async () => {
+        // Only continue checking if we're in checking or loading state
+        if (streetViewStatus === 'checking' || streetViewStatus === 'loading') {
+          const done = await checkStatus();
+          if (done) {
+            clearInterval(intervalId);
+          }
+        } else {
+          // Already loaded or error, stop checking
+          clearInterval(intervalId);
+        }
+      }, 3000); // Check every 3 seconds
+    } else {
+      // No property ID, can't construct URL
+      setStreetViewStatus('error');
+    }
+    
+    // Clean up interval and timeout
+    return () => {
+      if (intervalId) clearInterval(intervalId);
+      if (timeoutId) clearTimeout(timeoutId);
+    };
+  }, [property, isRetrying]);
+
+  const handleRetry = () => {
+    // Reset status and try again
+    setStreetViewStatus('checking');
+    setCheckAttempts(0);
+    setLoadingText('Initiating new street view capture...');
+    
+    // Trigger a manual capture
+    const propertyId = property.identifier?.attomId || property.attomId;
+    const address = property.fullAddress || getPropertyAddress(property);
+    
+    if (propertyId && address) {
+      setIsRetrying(true);
+      
+      fetch('/api/images/capture-streetview', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ 
+          address, 
+          propertyId 
+        })
+      })
+        .then(response => response.json())
+        .then(data => {
+          if (data.success) {
+            setStreetViewUrl(data.url);
+            setStreetViewStatus('loaded');
+          } else {
+            setStreetViewStatus('error');
+          }
+          setIsRetrying(false);
+        })
+        .catch(error => {
+          console.error('Error triggering manual capture:', error);
+          setStreetViewStatus('error');
+          setIsRetrying(false);
+        });
+    }
+  };
 
   const formatCurrency = (value) => {
     if (!value || value === 0) return null;
@@ -82,6 +251,9 @@ const PropertyDetails = ({ property }) => {
   const taxInfo = assessment.tax || {};
   const calculations = assessment.calculations || {};
 
+  // Calculate progress for the loading bar
+  const progressPercentage = Math.min((checkAttempts / 10) * 100, 100);
+
   return (
     <div className="w-full">
       {/* Header */}
@@ -126,71 +298,146 @@ const PropertyDetails = ({ property }) => {
       {/* Tab Content */}
       <div className="min-h-[400px]">
         {activeTab === 'overview' && (
-          <div className="grid md:grid-cols-2 gap-6">
-            <div>
-              <h4 className="font-semibold text-gray-900 mb-4">Basic Information</h4>
-              <div className="space-y-2">
-                <InfoItem 
-                  label="Property Type" 
-                  value={property.summary?.propclass || property.summary?.proptype} 
-                  icon={Building}
-                />
-                <InfoItem 
-                  label="Building Size" 
-                  value={property.building?.size?.universalsize} 
-                  formatter={(v) => `${formatNumber(v)} sq ft`}
-                  icon={Maximize2}
-                />
-                <InfoItem 
-                  label="Lot Size" 
-                  value={property.lot?.lotsize2} 
-                  formatter={(v) => `${formatNumber(v)} sq ft`}
-                  icon={Info}
-                />
-                {property.building?.rooms?.beds && (
-                  <InfoItem 
-                    label="Bedrooms" 
-                    value={property.building.rooms.beds}
+          <div>
+            {/* Street View Image Section - With enhanced loading states */}
+            <div className="mb-6">
+              <h4 className="font-semibold text-gray-900 mb-2">Street View</h4>
+              <div className="rounded-lg overflow-hidden border border-gray-200 bg-gray-50">
+                {streetViewStatus === 'checking' && (
+                  <div className="p-8 text-center">
+                    <Loader2 className="w-8 h-8 mx-auto text-gray-400 mb-3 animate-spin" />
+                    <p className="text-gray-600 font-medium">{loadingText}</p>
+                    <p className="text-xs text-gray-500 mt-2">Please wait while we locate this property</p>
+                  </div>
+                )}
+                
+                {streetViewStatus === 'loading' && (
+                  <div className="p-8 text-center">
+                    <div className="relative w-16 h-16 mx-auto mb-3">
+                      <Loader2 className="w-16 h-16 text-blue-500 animate-spin" />
+                      <Map className="w-8 h-8 text-blue-700 absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2" />
+                    </div>
+                    <p className="text-gray-700 font-medium">{loadingText}</p>
+                    <p className="text-sm text-gray-500 mt-1">This may take a few moments</p>
+                    
+                    {/* Animated progress bar */}
+                    <div className="w-64 h-1.5 bg-gray-200 rounded-full mx-auto mt-4 overflow-hidden">
+                      <div 
+                        className="h-full bg-blue-500 transition-all duration-500 ease-in-out rounded-full"
+                        style={{ width: `${progressPercentage}%` }}
+                      ></div>
+                    </div>
+                    
+                    {/* Estimated time remaining */}
+                    <p className="text-xs text-gray-400 mt-2">
+                      {progressPercentage < 100 
+                        ? `Estimated time remaining: ${Math.max(10 - checkAttempts, 1)} seconds` 
+                        : 'Finalizing...'}
+                    </p>
+                  </div>
+                )}
+                
+                {streetViewStatus === 'loaded' && streetViewUrl && (
+                  <img 
+                    src={streetViewUrl} 
+                    alt="Street View" 
+                    className="w-full h-auto"
+                    onError={() => setStreetViewStatus('error')}
                   />
                 )}
-                {property.building?.rooms?.bathstotal && (
-                  <InfoItem 
-                    label="Bathrooms" 
-                    value={property.building.rooms.bathstotal}
-                  />
+                
+                {streetViewStatus === 'error' && (
+                  <div className="p-8 text-center">
+                    <p className="text-gray-500">Street view not available for this property</p>
+                    <button 
+                      onClick={handleRetry}
+                      disabled={isRetrying}
+                      className="mt-3 flex items-center gap-2 mx-auto text-sm text-blue-600 hover:text-blue-800 hover:underline"
+                    >
+                      {isRetrying ? (
+                        <>
+                          <Loader2 className="w-4 h-4 animate-spin" />
+                          Trying again...
+                        </>
+                      ) : (
+                        <>
+                          <RefreshCw className="w-4 h-4" />
+                          Try again
+                        </>
+                      )}
+                    </button>
+                  </div>
                 )}
               </div>
             </div>
-            
-            <div>
-              <h4 className="font-semibold text-gray-900 mb-4">Valuation</h4>
-              <div className="space-y-2">
-                <InfoItem 
-                  label="Market Value" 
-                  value={marketValues.mktttlvalue || calculations.calcttlvalue}
-                  formatter={formatCurrency}
-                  icon={DollarSign}
-                />
-                <InfoItem 
-                  label="Assessed Value" 
-                  value={assessedValues.assdttlvalue}
-                  formatter={formatCurrency}
-                />
-                <InfoItem 
-                  label="Land Value" 
-                  value={marketValues.mktlandvalue || calculations.calclandvalue || assessedValues.assdlandvalue}
-                  formatter={formatCurrency}
-                />
-                <InfoItem 
-                  label="Last Sale Price" 
-                  value={property.sale?.amount?.saleamt}
-                  formatter={formatCurrency}
-                />
-                <InfoItem 
-                  label="Last Sale Date" 
-                  value={property.sale?.salesearchdate}
-                  formatter={formatDate}
-                />
+
+            {/* Original content */}
+            <div className="grid md:grid-cols-2 gap-6">
+              <div>
+                <h4 className="font-semibold text-gray-900 mb-4">Basic Information</h4>
+                <div className="space-y-2">
+                  <InfoItem 
+                    label="Property Type" 
+                    value={property.summary?.propclass || property.summary?.proptype} 
+                    icon={Building}
+                  />
+                  <InfoItem 
+                    label="Building Size" 
+                    value={property.building?.size?.universalsize} 
+                    formatter={(v) => `${formatNumber(v)} sq ft`}
+                    icon={Maximize2}
+                  />
+                  <InfoItem 
+                    label="Lot Size" 
+                    value={property.lot?.lotsize2} 
+                    formatter={(v) => `${formatNumber(v)} sq ft`}
+                    icon={Info}
+                  />
+                  {property.building?.rooms?.beds && (
+                    <InfoItem 
+                      label="Bedrooms" 
+                      value={property.building.rooms.beds}
+                    />
+                  )}
+                  {property.building?.rooms?.bathstotal && (
+                    <InfoItem 
+                      label="Bathrooms" 
+                      value={property.building.rooms.bathstotal}
+                    />
+                  )}
+                </div>
+              </div>
+              
+              <div>
+                <h4 className="font-semibold text-gray-900 mb-4">Valuation</h4>
+                <div className="space-y-2">
+                  <InfoItem 
+                    label="Market Value" 
+                    value={marketValues.mktttlvalue || calculations.calcttlvalue}
+                    formatter={formatCurrency}
+                    icon={DollarSign}
+                  />
+                  <InfoItem 
+                    label="Assessed Value" 
+                    value={assessedValues.assdttlvalue}
+                    formatter={formatCurrency}
+                  />
+                  <InfoItem 
+                    label="Land Value" 
+                    value={marketValues.mktlandvalue || calculations.calclandvalue || assessedValues.assdlandvalue}
+                    formatter={formatCurrency}
+                  />
+                  <InfoItem 
+                    label="Last Sale Price" 
+                    value={property.sale?.amount?.saleamt}
+                    formatter={formatCurrency}
+                  />
+                  <InfoItem 
+                    label="Last Sale Date" 
+                    value={property.sale?.salesearchdate}
+                    formatter={formatDate}
+                  />
+                </div>
               </div>
             </div>
           </div>
@@ -398,7 +645,6 @@ const PropertyDetails = ({ property }) => {
   );
 };
 
-// Helper function to get property address
 const getPropertyAddress = (property) => {
   if (property.address?.oneLine) return property.address.oneLine;
   

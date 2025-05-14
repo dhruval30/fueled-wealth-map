@@ -3,7 +3,7 @@ import axios from 'axios';
 // Create an axios instance with default config
 const api = axios.create({
   baseURL: '/api', // This will use your Vite proxy
-  timeout: 10000,
+  timeout: 30000,
   headers: {
     'Content-Type': 'application/json'
   }
@@ -368,6 +368,56 @@ export const saveApiKey = async (apiKey) => {
   } catch (error) {
     console.error('Error saving API key:', error);
     throw 'Failed to save API key.';
+  }
+};
+
+
+// Add these functions to your api.js file
+
+/**
+ * Get a street view image URL for a property
+ * @param {string|number} propertyId - The property ID (ATTOM ID)
+ * @returns {string} - URL to the street view image
+ */
+export const getPropertyImageUrl = (propertyId) => {
+  if (!propertyId) return null;
+  return `/api/images/streetview/streetview_${propertyId}.png`;
+};
+
+/**
+ * Check if a street view image exists and get its status
+ * @param {string|number} propertyId - The property ID (ATTOM ID)
+ * @returns {Promise<Object>} - Status object with information about the image
+ */
+export const checkStreetViewStatus = async (propertyId) => {
+  try {
+    const response = await axios.get(`/api/images/streetview-status/${propertyId}`);
+    return response.data;
+  } catch (error) {
+    console.error('Error checking street view status:', error);
+    return { status: 'error', error: error.message };
+  }
+};
+
+/**
+ * Request a new street view capture for a property
+ * @param {string} address - The property address
+ * @param {string|number} propertyId - The property ID (ATTOM ID)
+ * @returns {Promise<Object>} - Response with status of the capture request
+ */
+export const requestStreetViewCapture = async (address, propertyId) => {
+  try {
+    const response = await api.post('/api/images/capture-streetview', {
+      address,
+      propertyId
+    });
+    return response.data;
+  } catch (error) {
+    console.error('Error requesting street view capture:', error);
+    if (error.response) {
+      throw error.response.data?.message || 'Failed to capture street view';
+    }
+    throw 'Failed to capture street view';
   }
 };
 

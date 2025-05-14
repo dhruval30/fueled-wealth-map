@@ -1,3 +1,4 @@
+// Updated SearchHistory.js with GridFS reference
 const mongoose = require('mongoose');
 
 const SearchHistorySchema = new mongoose.Schema({
@@ -31,6 +32,10 @@ const SearchHistorySchema = new mongoose.Schema({
   results: {
     count: { type: Number, default: 0 },
     properties: { type: Array, default: [] }
+  },
+  streetViewImage: {
+    type: String, // Now stores the GridFS filename
+    default: null
   },
   createdAt: {
     type: Date,

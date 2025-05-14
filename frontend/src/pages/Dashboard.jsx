@@ -40,6 +40,8 @@ import PropertyMap from './PropertyMap';
 
 export default function Dashboard() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
+  const [searchRefreshTimer, setSearchRefreshTimer] = useState(null);
+
   const [showMap, setShowMap] = useState(false);
   const [selectedProperty, setSelectedProperty] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -175,18 +177,44 @@ export default function Dashboard() {
           }
         });
         
-        // Refresh recent searches
-        const searchHistory = await getUserSearchHistory();
-        setStats(prev => ({
-          ...prev,
-          recentSearches: searchHistory.data?.slice(0, 5) || []
-        }));
+        // Start a timer to refresh search data in 10 seconds to get the street view image
+        if (searchRefreshTimer) {
+          clearTimeout(searchRefreshTimer);
+        }
+        
+        const timer = setTimeout(() => {
+          refreshDashboardData();
+        }, 10000); // 10 seconds
+        
+        setSearchRefreshTimer(timer);
+        
       } catch (err) {
         console.error('Error saving search:', err);
       }
     }
   };
 
+  const refreshDashboardData = async () => {
+    try {
+      // Only refresh the searches, not the entire dashboard
+      const searchHistory = await getUserSearchHistory();
+      setStats(prev => ({
+        ...prev,
+        recentSearches: searchHistory.data?.slice(0, 5) || []
+      }));
+      
+      console.log("Dashboard data refreshed to get updated street view images");
+    } catch (err) {
+      console.error('Error refreshing dashboard data:', err);
+    }
+  };
+  useEffect(() => {
+    return () => {
+      if (searchRefreshTimer) {
+        clearTimeout(searchRefreshTimer);
+      }
+    };
+  }, [searchRefreshTimer]);
   const handleSaveProperty = async (property) => {
     setSaveStatus('saving');
     setSaveMessage('Saving property...');
@@ -237,10 +265,18 @@ export default function Dashboard() {
   };
 
   const handleSearchClick = async (search) => {
+    // Check if the search has a street view image
+    const streetViewImage = search.streetViewImage;
+    
     // Check if this search has property data already
     if (search.propertyId && search.results?.properties?.length > 0) {
       // We have full property data in the search results
       const propertyData = search.results.properties[0];
+      
+      // Add the street view image to the property data if available
+      if (streetViewImage) {
+        propertyData.streetViewImage = streetViewImage;
+      }
       
       // Get coordinates
       const latitude = 
@@ -277,6 +313,11 @@ export default function Dashboard() {
         const propertyData = await getPropertyById(search.propertyId);
         
         if (propertyData) {
+          // Add the street view image to the property data if available
+          if (streetViewImage) {
+            propertyData.streetViewImage = streetViewImage;
+          }
+          
           // Get coordinates
           const latitude = 
             propertyData.location?.latitude || 
@@ -637,16 +678,6 @@ export default function Dashboard() {
                 Overview
               </button>
               <button
-                onClick={() => setActiveSection('properties')}
-                className={`pb-3 text-sm font-medium border-b-2 whitespace-nowrap transition-colors ${
-                  activeSection === 'properties' 
-                    ? 'border-blue-600 text-blue-600' 
-                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-                }`}
-              >
-                Properties
-              </button>
-              <button
                 onClick={() => setActiveSection('activity')}
                 className={`pb-3 text-sm font-medium border-b-2 whitespace-nowrap transition-colors ${
                   activeSection === 'activity' 
@@ -857,24 +888,49 @@ export default function Dashboard() {
                   <div className="p-4">
                     {filteredSearches.length > 0 ? (
                       <ul className="divide-y divide-gray-100">
-                        {filteredSearches.map((search) => (
-                          <li 
-                            key={search._id} 
-                            className="py-3 flex justify-between items-center hover:bg-gray-50 cursor-pointer rounded-lg px-3 transition-colors"
-                            onClick={() => handleSearchClick(search)}
-                          >
-                            <div className="flex items-center">
-                              <div className="bg-blue-100 p-2 rounded-lg mr-3">
-                                <Search className="h-4 w-4 text-blue-600" />
+                        {filteredSearches.map((search) => {
+                          // Use the streetViewImage URL directly from the API
+                          const streetViewImage = search.streetViewImage;
+                          
+                          return (
+                            <li 
+                              key={search._id} 
+                              className="py-3 flex justify-between items-center hover:bg-gray-50 cursor-pointer rounded-lg px-3 transition-colors"
+                              onClick={() => handleSearchClick(search)}
+                            >
+                              <div className="flex items-center">
+                                {streetViewImage ? (
+                                  <div className="w-16 h-12 rounded-lg mr-3 overflow-hidden bg-gray-100 flex-shrink-0">
+                                    <img 
+                                      src={streetViewImage} 
+                                      alt="Street View" 
+                                      className="w-full h-full object-cover"
+                                      onError={(e) => {
+                                        console.log("Image failed to load:", streetViewImage);
+                                        e.target.style.display = 'none';
+                                        e.target.parentNode.innerHTML = '<div class="w-full h-full flex items-center justify-center"><span class="text-gray-400 text-xs">No image</span></div>';
+                                      }}
+                                    />
+                                  </div>
+                                ) : (
+                                  <div className="bg-blue-100 p-2 rounded-lg mr-3 w-16 h-12 flex items-center justify-center flex-shrink-0">
+                                    <Search className="h-4 w-4 text-blue-600" />
+                                  </div>
+                                )}
+                                <div>
+                                  <p className="text-sm font-medium text-gray-900 line-clamp-1">{search.query}</p>
+                                  {search.propertyId && (
+                                    <p className="text-xs text-gray-500">Property ID: {search.propertyId}</p>
+                                  )}
+                                </div>
                               </div>
-                              <p className="text-sm font-medium text-gray-900 line-clamp-1">{search.query}</p>
-                            </div>
-                            <div className="flex items-center text-xs text-gray-500 whitespace-nowrap ml-4">
-                              <Clock className="h-3 w-3 mr-1 flex-shrink-0" />
-                              <span>{new Date(search.createdAt).toLocaleDateString()}</span>
-                            </div>
-                          </li>
-                        ))}
+                              <div className="flex items-center text-xs text-gray-500 whitespace-nowrap ml-4">
+                                <Clock className="h-3 w-3 mr-1 flex-shrink-0" />
+                                <span>{new Date(search.createdAt).toLocaleDateString()}</span>
+                              </div>
+                            </li>
+                          );
+                        })}
                       </ul>
                     ) : (
                       <div className="py-8 text-center">
@@ -931,97 +987,6 @@ export default function Dashboard() {
             </div>
           )}
           
-          {activeSection === 'properties' && (
-            <div className="space-y-6">
-              <div className="bg-white rounded-xl shadow-sm border border-gray-100 hover:shadow-md transition-shadow">
-                <div className="p-4 border-b border-gray-100 flex items-center justify-between">
-                  <div className="flex items-center">
-                    <BookmarkIcon className="h-5 w-5 mr-2 text-blue-600" />
-                    <h2 className="text-lg font-medium text-gray-800">Recently Saved Properties</h2>
-                  </div>
-                  <Link to="/saved-properties" className="text-blue-600 hover:text-blue-800 text-sm font-medium flex items-center">
-                    View All
-                    <ChevronRight className="h-4 w-4 ml-1" />
-                  </Link>
-                </div>
-                <div className="p-4">
-                  {stats.savedProperties.length > 0 ? (
-                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                      {stats.savedProperties.map((property) => (
-                        <div 
-                          key={property._id}
-                          onClick={() => setSelectedProperty(property.propertyData)}
-                          className="border border-gray-200 rounded-lg overflow-hidden cursor-pointer hover:shadow-md transition-shadow bg-white"
-                        >
-                          <div className="bg-gradient-to-r from-gray-100 to-gray-200 h-32 flex items-center justify-center">
-                            <MapPin className="h-8 w-8 text-gray-400" />
-                          </div>
-                          <div className="p-4">
-                            <h3 className="text-sm font-medium text-gray-900 mb-1 line-clamp-1">
-                              {getPropertyAddress(property.propertyData)}
-                            </h3>
-                            <div className="flex items-center text-xs text-gray-500 mb-2">
-                              <Building className="h-3 w-3 mr-1 flex-shrink-0" />
-                              <span className="line-clamp-1">{property.propertyData?.summary?.propclass || 'Property'}</span>
-                            </div>
-                            <div className="flex justify-between items-center">
-                              <div className="text-sm font-bold text-green-600">
-                                {property.value ? `${property.value.toLocaleString()}` : 'N/A'}
-                              </div>
-                              <div className="text-xs text-gray-500">Saved recently</div>
-                            </div>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  ) : (
-                    <div className="py-8 text-center">
-                      <BookmarkIcon className="h-8 w-8 text-gray-300 mx-auto mb-2" />
-                      <p className="text-gray-500 text-sm">No saved properties yet</p>
-                      <button
-                        onClick={() => setShowMap(true)}
-                        className="mt-4 px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700 transition-colors"
-                      >
-                        Find Properties
-                      </button>
-                    </div>
-                  )}
-                </div>
-              </div>
-              
-              <div className="bg-white rounded-xl shadow-sm border border-gray-100 hover:shadow-md transition-shadow">
-                <div className="p-4 border-b border-gray-100 flex items-center">
-                  <Map className="h-5 w-5 mr-2 text-blue-600" />
-                  <h2 className="text-lg font-medium text-gray-800">Top Property Markets</h2>
-                </div>
-                <div className="p-4">
-                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-                    {['New York', 'Los Angeles', 'Chicago', 'Miami'].map((city, index) => (
-                      <div 
-                        key={city}
-                        className="rounded-lg p-4 bg-gradient-to-br from-gray-50 to-gray-100 hover:from-blue-50 hover:to-gray-100 cursor-pointer border border-gray-200 transition-colors"
-                      >
-                        <div className="flex items-center justify-between mb-2">
-                          <div className="font-medium text-gray-900">{city}</div>
-                          <div className={`text-xs font-medium px-2 py-0.5 rounded-full ${
-                            index % 2 === 0 ? 'bg-green-100 text-green-800' : 'bg-amber-100 text-amber-800'
-                          }`}>
-                            {index % 2 === 0 ? 'Active' : 'Hot Market'}
-                          </div>
-                        </div>
-                        <div className="text-sm text-gray-600 mb-1">
-                          {200 - (index * 50)}+ properties
-                        </div>
-                        <div className="text-xs text-gray-500">
-                          Avg. value: ${(1.2 - (index * 0.2)).toFixed(1)}M
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              </div>
-            </div>
-          )}
           
           {activeSection === 'activity' && (
             <div className="space-y-6">
