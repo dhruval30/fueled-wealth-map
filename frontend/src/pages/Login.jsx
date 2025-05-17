@@ -26,35 +26,60 @@ export default function Login() {
     }
   };
 
+// Improve the handleSubmit function in Login.jsx to provide faster feedback
+
 const handleSubmit = async (e) => {
-    e.preventDefault();
+  e.preventDefault();
+  
+  // Validate form - do client-side validation first for immediate feedback
+  if (!credentials.email.trim()) {
+    setError('Please enter your email');
+    return;
+  }
+  
+  if (!credentials.password) {
+    setError('Please enter your password');
+    return;
+  }
+  
+  // Simple email format validation for instant feedback
+  const emailRegex = /\S+@\S+\.\S+/;
+  if (!emailRegex.test(credentials.email.trim())) {
+    setError('Please enter a valid email address');
+    return;
+  }
+  
+  setIsSubmitting(true);
+  
+  try {
+    // Set a timeout to provide feedback if request is taking too long
+    const timeoutId = setTimeout(() => {
+      // Only show this message if we're still submitting
+      if (isSubmitting) {
+        setError('The server is taking longer than expected. Please wait...');
+      }
+    }, 3000);
     
-    // Validate form
-    if (!credentials.email.trim() || !credentials.password) {
-      setError('Please enter both email and password');
-      return;
-    }
+    const response = await login(credentials);
     
-    setIsSubmitting(true);
+    // Clear timeout since we got a response
+    clearTimeout(timeoutId);
     
-    try {
-      const response = await login(credentials);
-      
-      // Save authentication data
-      localStorage.setItem('authToken', response.token);
-      localStorage.setItem('companyId', response.user.companyId);
-      localStorage.setItem('userEmail', response.user.email);
-      localStorage.setItem('isAdmin', response.user.role === 'admin' ? 'true' : 'false');
-      
-      // Redirect to dashboard
-      navigate('/dashboard');
-    } catch (error) {
-      console.error('Login error:', error);
-      setError(typeof error === 'string' ? error : 'Invalid credentials. Please try again.');
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
+    // Save authentication data
+    localStorage.setItem('authToken', response.token);
+    localStorage.setItem('companyId', response.user.companyId);
+    localStorage.setItem('userEmail', response.user.email);
+    localStorage.setItem('isAdmin', response.user.role === 'admin' ? 'true' : 'false');
+    
+    // Redirect to dashboard
+    navigate('/dashboard');
+  } catch (error) {
+    console.error('Login error:', error);
+    setError(typeof error === 'string' ? error : 'Invalid credentials. Please try again.');
+  } finally {
+    setIsSubmitting(false);
+  }
+};
 
   return (
     <div className="min-h-screen bg-[#F8F9FB] flex items-center justify-center py-12 px-6">

@@ -17,9 +17,10 @@ exports.login = async (req, res) => {
       });
     }
     
-    // Check for user
+    // Don't use lean() here as we need the document methods
     const user = await User.findOne({ email }).select('+password');
     
+    // Early failure for non-existent user
     if (!user) {
       return res.status(401).json({
         success: false,
@@ -35,7 +36,7 @@ exports.login = async (req, res) => {
       });
     }
     
-    // Check if password matches
+    // Check password match
     const isMatch = await user.matchPassword(password);
     
     if (!isMatch) {
@@ -45,13 +46,15 @@ exports.login = async (req, res) => {
       });
     }
     
-    // Update last login
-    user.lastLogin = Date.now();
-    await user.save();
+    // Update last login as a background operation
+    const userId = user._id;
+    // Use a non-awaited update
+    User.updateOne({ _id: userId }, { lastLogin: Date.now() }).exec()
+      .catch(err => console.error('Error updating last login:', err));
     
     // Generate JWT token
     const token = jwt.sign(
-      { id: user._id },
+      { id: userId },
       process.env.JWT_SECRET || 'fallback_secret_for_development',
       { expiresIn: '30d' }
     );
@@ -60,7 +63,7 @@ exports.login = async (req, res) => {
       success: true,
       token,
       user: {
-        id: user._id,
+        id: userId,
         email: user.email,
         role: user.role,
         companyId: user.company

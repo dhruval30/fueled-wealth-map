@@ -72,13 +72,30 @@ export const registerCompany = async (formData) => {
 // User login
 export const login = async (credentials) => {
   try {
-    const response = await api.post('/auth/login', credentials);
+    // Set a shorter timeout for login requests
+    const response = await axios.post('/api/auth/login', credentials, {
+      timeout: 10000 // 10 seconds max
+    });
     return response.data;
   } catch (error) {
+    // More specific error handling for better user feedback
     if (error.response) {
-      throw error.response.data?.message || 'Login failed';
+      // The request was made and the server responded with a status code
+      // that falls out of the range of 2xx
+      if (error.response.status === 401) {
+        throw 'Invalid email or password. Please try again.';
+      } else if (error.response.status === 429) {
+        throw 'Too many login attempts. Please try again later.';
+      } else {
+        throw error.response.data?.message || 'Login failed';
+      }
+    } else if (error.request) {
+      // The request was made but no response was received
+      throw 'No response from server. Please check your connection.';
+    } else {
+      // Something happened in setting up the request that triggered an Error
+      throw 'Login failed. Please try again.';
     }
-    throw 'Login failed. Please try again.';
   }
 };
 
