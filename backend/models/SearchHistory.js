@@ -1,4 +1,4 @@
-// Updated SearchHistory.js with GridFS reference
+// Updated SearchHistory.js with correct enum values
 const mongoose = require('mongoose');
 
 const SearchHistorySchema = new mongoose.Schema({
@@ -18,7 +18,14 @@ const SearchHistorySchema = new mongoose.Schema({
   },
   searchType: {
     type: String,
-    enum: ['map_click', 'text_search', 'filter_search', 'advanced_search'],
+    enum: [
+      'map_click', 
+      'text_search', 
+      'filter_search', 
+      'advanced_search',
+      'zipcode_search',    // Add this
+      'address_search'     // Add this
+    ],
     default: 'text_search'
   },
   propertyId: {

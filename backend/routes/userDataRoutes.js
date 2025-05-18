@@ -53,6 +53,10 @@ router.get('/search-history', protect, async (req, res) => {
 // Save user search - Decoupled from street view capture, works with GridFS
 router.post('/search-history', protect, async (req, res) => {
   try {
+    console.log('Received search history request:', req.body);
+    console.log('User ID:', req.user.id);
+    console.log('Company ID:', req.user.company);
+
     const searchData = {
       user: req.user.id,
       company: req.user.company,
@@ -67,9 +71,26 @@ router.post('/search-history', protect, async (req, res) => {
       streetViewImage: null // Initialize with null, will be updated asynchronously
     };
 
-    // First create the search record without the street view image
+    console.log('Processed search data:', searchData);
+
+    // Validate required fields
+    if (!searchData.query) {
+      return res.status(400).json({
+        success: false,
+        message: 'Query is required'
+      });
+    }
+
+    if (!searchData.user || !searchData.company) {
+      return res.status(400).json({
+        success: false,
+        message: 'User and company are required'
+      });
+    }
+
+    // Create the search record
     const search = await SearchHistory.create(searchData);
-    console.log('Search saved:', searchData);
+    console.log('Search saved successfully:', search._id);
     
     // If this is a property search and has an address, trigger street view capture
     // in the background without waiting for it
@@ -95,10 +116,14 @@ router.post('/search-history', protect, async (req, res) => {
     });
   } catch (error) {
     console.error('Error saving search:', error);
+    console.error('Error stack:', error.stack);
+    
+    // Return detailed error information
     res.status(500).json({
       success: false,
       message: 'Failed to save search',
-      error: error.message
+      error: error.message,
+      details: process.env.NODE_ENV === 'development' ? error.stack : undefined
     });
   }
 });

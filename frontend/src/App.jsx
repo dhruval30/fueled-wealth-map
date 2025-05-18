@@ -3,9 +3,11 @@ import AcceptInvitation from './pages/AcceptInvitation';
 import Dashboard from './pages/Dashboard';
 import LandingPage from './pages/LandingPage';
 import Login from './pages/Login';
+import PropertyMapPage from './pages/PropertyMapPage';
 import RegisterCompany from './pages/RegisterCompany';
 import SavedProperties from './pages/SavedProperties';
 import TeamManagement from './pages/TeamManagement';
+
 // Protected Route component
 const ProtectedRoute = ({ children }) => {
   const isAuthenticated = localStorage.getItem('authToken');
@@ -50,6 +52,13 @@ function App() {
           </ProtectedRoute>
         } />
         
+        {/* Dedicated Property Map Page */}
+        <Route path="/property-map" element={
+          <ProtectedRoute>
+            <PropertyMapPage />
+          </ProtectedRoute>
+        } />
+        
         {/* Admin-only routes */}
         <Route path="/team" element={
           <AdminRoute>
@@ -58,11 +67,6 @@ function App() {
         } />
         
         {/* Other protected routes */}
-        <Route path="/property-map" element={
-          <ProtectedRoute>
-            <Dashboard />
-          </ProtectedRoute>
-        } />
         <Route path="/search" element={
           <ProtectedRoute>
             <Dashboard />
@@ -74,10 +78,10 @@ function App() {
           </ProtectedRoute>
         } />
         <Route path="/saved-properties" element={
-  <ProtectedRoute>
-    <SavedProperties />
-  </ProtectedRoute>
-} />
+          <ProtectedRoute>
+            <SavedProperties />
+          </ProtectedRoute>
+        } />
         <Route path="/settings" element={
           <ProtectedRoute>
             <Dashboard />

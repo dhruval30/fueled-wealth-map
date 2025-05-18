@@ -260,9 +260,15 @@ export const getCompanyStats = async () => {
 // Save a user's search
 export const saveUserSearch = async (searchData) => {
   try {
+    console.log('Saving search data:', searchData);
     const response = await api.post('/user/search-history', searchData);
+    console.log('Search saved successfully:', response.data);
     return response.data;
   } catch (error) {
+    console.error('Failed to save search:', error);
+    console.error('Response data:', error.response?.data);
+    console.error('Request data:', searchData);
+    
     if (error.response) {
       throw error.response.data?.message || 'Failed to save search';
     }

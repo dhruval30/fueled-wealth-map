@@ -1,4 +1,4 @@
-// Updated PropertyDetails.jsx with enhanced map loading state
+// frontend/src/pages/PropertyDetails.jsx - Enhanced UI version
 import {
   Building,
   Calendar,
@@ -16,15 +16,14 @@ import React, { useEffect, useState } from 'react';
 
 const PropertyDetails = ({ property }) => {
   const [activeTab, setActiveTab] = useState('overview');
-  const [streetViewStatus, setStreetViewStatus] = useState('checking'); // 'checking', 'loading', 'loaded', 'error'
+  const [streetViewStatus, setStreetViewStatus] = useState('checking');
   const [checkAttempts, setCheckAttempts] = useState(0);
   const [streetViewUrl, setStreetViewUrl] = useState(null);
   const [isRetrying, setIsRetrying] = useState(false);
   const [loadingText, setLoadingText] = useState('Checking for street view image...');
 
-  // Check if property has street view image or try to construct the path
+  // Street view logic (keeping existing logic)
   useEffect(() => {
-    // Reset status when property changes
     setStreetViewStatus('checking');
     setCheckAttempts(0);
     setStreetViewUrl(null);
@@ -34,7 +33,6 @@ const PropertyDetails = ({ property }) => {
     let intervalId = null;
     let timeoutId = null;
     
-    // If property already has a streetViewImage, use it
     if (property.streetViewImage) {
       setStreetViewUrl(property.streetViewImage);
       setStreetViewStatus('loaded');
@@ -44,10 +42,8 @@ const PropertyDetails = ({ property }) => {
       };
     }
     
-    // Otherwise, try to construct a potential URL if we have a property ID
     const propertyId = property.identifier?.attomId || property.attomId;
     if (propertyId) {
-      // First check the status endpoint to see if image is being processed
       const checkStatus = async () => {
         try {
           const response = await fetch(`/api/images/streetview-status/${propertyId}`);
@@ -55,15 +51,12 @@ const PropertyDetails = ({ property }) => {
             const data = await response.json();
             
             if (data.status === 'complete') {
-              // Image is ready
               setStreetViewUrl(data.url);
               setStreetViewStatus('loaded');
-              return true; // Done checking
+              return true;
             } else if (data.status === 'processing') {
-              // Image is being processed, show loading state with specific text
               setStreetViewStatus('loading');
               
-              // Update loading text based on where we are in the process
               if (data.elapsedSeconds) {
                 if (data.elapsedSeconds < 5) {
                   setLoadingText('Locating property on map...');
@@ -75,7 +68,6 @@ const PropertyDetails = ({ property }) => {
                   setLoadingText('Finalizing street view capture...');
                 }
               } else {
-                // Rotate through loading messages if we don't have elapsed time
                 const messages = [
                   'Locating property on map...',
                   'Looking for street view data...',
@@ -86,26 +78,23 @@ const PropertyDetails = ({ property }) => {
               }
               
               setCheckAttempts(prev => Math.min(prev + 1, 10));
-              return false; // Continue checking
+              return false;
             } else {
-              // Image not found and not being processed
               setStreetViewStatus('error');
-              return true; // Done checking
+              return true;
             }
           } else {
-            // Error checking status
             console.error('Error checking street view status:', response.statusText);
             setStreetViewStatus('error');
-            return true; // Done checking
+            return true;
           }
         } catch (error) {
           console.error('Error checking street view status:', error);
           setStreetViewStatus('error');
-          return true; // Done checking
+          return true;
         }
       };
       
-      // Add a simulated delay to show the checking state (better UX)
       timeoutId = setTimeout(() => {
         if (streetViewStatus === 'checking') {
           setStreetViewStatus('loading');
@@ -113,28 +102,22 @@ const PropertyDetails = ({ property }) => {
         }
       }, 1000);
       
-      // Do initial check
       checkStatus();
       
-      // Set up periodic checks
       intervalId = setInterval(async () => {
-        // Only continue checking if we're in checking or loading state
         if (streetViewStatus === 'checking' || streetViewStatus === 'loading') {
           const done = await checkStatus();
           if (done) {
             clearInterval(intervalId);
           }
         } else {
-          // Already loaded or error, stop checking
           clearInterval(intervalId);
         }
-      }, 3000); // Check every 3 seconds
+      }, 3000);
     } else {
-      // No property ID, can't construct URL
       setStreetViewStatus('error');
     }
     
-    // Clean up interval and timeout
     return () => {
       if (intervalId) clearInterval(intervalId);
       if (timeoutId) clearTimeout(timeoutId);
@@ -142,12 +125,10 @@ const PropertyDetails = ({ property }) => {
   }, [property, isRetrying]);
 
   const handleRetry = () => {
-    // Reset status and try again
     setStreetViewStatus('checking');
     setCheckAttempts(0);
     setLoadingText('Initiating new street view capture...');
     
-    // Trigger a manual capture
     const propertyId = property.identifier?.attomId || property.attomId;
     const address = property.fullAddress || getPropertyAddress(property);
     
@@ -182,6 +163,7 @@ const PropertyDetails = ({ property }) => {
     }
   };
 
+  // Helper functions (keeping existing logic)
   const formatCurrency = (value) => {
     if (!value || value === 0) return null;
     return new Intl.NumberFormat('en-US', {
@@ -209,13 +191,10 @@ const PropertyDetails = ({ property }) => {
     }
   };
 
-  // Helper function to get values from any of the possible paths
   const getPropertyValue = (path) => {
-    // Check events path first
     const eventsPath = path.split('.').reduce((obj, key) => obj?.events?.[key], property);
     if (eventsPath !== undefined && eventsPath !== null) return eventsPath;
     
-    // Check direct path
     const directPath = path.split('.').reduce((obj, key) => obj?.[key], property);
     return directPath;
   };
@@ -226,11 +205,17 @@ const PropertyDetails = ({ property }) => {
     if (!formattedValue) return null;
     
     return (
-      <div className="flex items-start gap-3 py-2">
-        {Icon && <Icon className="h-5 w-5 text-gray-400 mt-0.5" />}
-        <div className="flex-1">
-          <span className="text-sm text-gray-500">{label}:</span>
-          <span className="ml-2 text-gray-900">{formattedValue}</span>
+      <div className="group p-4 bg-gray-50 rounded-xl hover:bg-gray-100 transition-all duration-200">
+        <div className="flex items-start space-x-3">
+          {Icon && (
+            <div className="p-2 bg-white rounded-lg shadow-sm group-hover:shadow-md transition-shadow">
+              <Icon className="h-4 w-4 text-gray-600" />
+            </div>
+          )}
+          <div className="flex-1">
+            <p className="text-sm font-medium text-gray-600 mb-1">{label}</p>
+            <p className="text-lg font-semibold text-gray-900">{formattedValue}</p>
+          </div>
         </div>
       </div>
     );
@@ -244,52 +229,50 @@ const PropertyDetails = ({ property }) => {
     { id: 'history', label: 'Transaction History', icon: Calendar }
   ];
 
-  // Get assessment data from either path
   const assessment = getPropertyValue('assessment') || {};
   const assessedValues = assessment.assessed || {};
   const marketValues = assessment.market || {};
   const taxInfo = assessment.tax || {};
   const calculations = assessment.calculations || {};
 
-  // Calculate progress for the loading bar
   const progressPercentage = Math.min((checkAttempts / 10) * 100, 100);
 
   return (
-    <div className="w-full">
-      {/* Header */}
-      <div className="mb-6">
-        <h3 className="text-xl font-bold text-gray-900 mb-2">
+    <div className="w-full p-6 space-y-6">
+      {/* Property Header - Enhanced */}
+      <div className="bg-gradient-to-r from-blue-50 to-indigo-50 p-6 rounded-2xl border border-blue-100">
+        <h3 className="text-2xl font-bold text-gray-900 mb-3">
           {property.fullAddress || getPropertyAddress(property)}
         </h3>
-        <div className="flex items-center gap-4 text-sm text-gray-600">
-          <div className="flex items-center gap-1">
-            <MapPin className="h-4 w-4" />
+        <div className="flex flex-wrap gap-3">
+          <span className="inline-flex items-center px-3 py-1 rounded-full text-sm bg-blue-100 text-blue-800 font-medium">
+            <Building className="h-4 w-4 mr-1" />
             {property.summary?.propclass || property.summary?.proptype || 'Property'}
-          </div>
+          </span>
           {property.summary?.yearbuilt && (
-            <div className="flex items-center gap-1">
-              <Calendar className="h-4 w-4" />
+            <span className="inline-flex items-center px-3 py-1 rounded-full text-sm bg-green-100 text-green-800 font-medium">
+              <Calendar className="h-4 w-4 mr-1" />
               Built in {property.summary.yearbuilt}
-            </div>
+            </span>
           )}
         </div>
       </div>
 
-      {/* Tabs */}
-      <div className="border-b border-gray-200 mb-6">
-        <nav className="flex gap-6">
+      {/* Enhanced Tabs */}
+      <div className="border-b border-gray-200">
+        <nav className="flex space-x-8 overflow-x-auto">
           {tabs.map(tab => (
             <button
               key={tab.id}
               onClick={() => setActiveTab(tab.id)}
-              className={`flex items-center gap-2 py-2 px-1 text-sm font-medium border-b-2 transition-colors ${
+              className={`flex items-center space-x-2 py-4 px-1 text-sm font-medium transition-all duration-200 whitespace-nowrap ${
                 activeTab === tab.id
-                  ? 'border-blue-600 text-blue-600'
-                  : 'border-transparent text-gray-500 hover:text-gray-700'
+                  ? 'border-b-2 border-blue-600 text-blue-600'
+                  : 'text-gray-500 hover:text-gray-700 hover:border-b-2 hover:border-gray-300'
               }`}
             >
               <tab.icon className="h-4 w-4" />
-              {tab.label}
+              <span>{tab.label}</span>
             </button>
           ))}
         </nav>
@@ -298,42 +281,49 @@ const PropertyDetails = ({ property }) => {
       {/* Tab Content */}
       <div className="min-h-[400px]">
         {activeTab === 'overview' && (
-          <div>
-            {/* Street View Image Section - With enhanced loading states */}
-            <div className="mb-6">
-              <h4 className="font-semibold text-gray-900 mb-2">Street View</h4>
-              <div className="rounded-lg overflow-hidden border border-gray-200 bg-gray-50">
+          <div className="space-y-6">
+            {/* Enhanced Street View Section */}
+            <div className="bg-white rounded-2xl border border-gray-200 overflow-hidden shadow-sm">
+              <div className="p-4 border-b border-gray-100">
+                <h4 className="font-semibold text-gray-900 flex items-center">
+                  <Map className="h-5 w-5 mr-2 text-blue-600" />
+                  Street View
+                </h4>
+              </div>
+              <div className="aspect-video bg-gray-50 relative overflow-hidden">
                 {streetViewStatus === 'checking' && (
-                  <div className="p-8 text-center">
-                    <Loader2 className="w-8 h-8 mx-auto text-gray-400 mb-3 animate-spin" />
-                    <p className="text-gray-600 font-medium">{loadingText}</p>
-                    <p className="text-xs text-gray-500 mt-2">Please wait while we locate this property</p>
+                  <div className="absolute inset-0 flex items-center justify-center bg-gradient-to-br from-gray-50 to-gray-100">
+                    <div className="text-center p-8">
+                      <Loader2 className="w-12 h-12 mx-auto text-blue-500 mb-4 animate-spin" />
+                      <p className="text-gray-700 font-medium text-lg">{loadingText}</p>
+                      <p className="text-gray-500 text-sm mt-2">Please wait while we locate this property</p>
+                    </div>
                   </div>
                 )}
                 
                 {streetViewStatus === 'loading' && (
-                  <div className="p-8 text-center">
-                    <div className="relative w-16 h-16 mx-auto mb-3">
-                      <Loader2 className="w-16 h-16 text-blue-500 animate-spin" />
-                      <Map className="w-8 h-8 text-blue-700 absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2" />
+                  <div className="absolute inset-0 flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-50">
+                    <div className="text-center p-8">
+                      <div className="relative w-20 h-20 mx-auto mb-6">
+                        <Loader2 className="w-20 h-20 text-blue-500 animate-spin" />
+                        <Map className="w-10 h-10 text-blue-700 absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2" />
+                      </div>
+                      <p className="text-gray-700 font-medium text-lg">{loadingText}</p>
+                      <p className="text-gray-600 text-sm mt-2">This may take a few moments</p>
+                      
+                      <div className="w-80 h-2 bg-gray-200 rounded-full mx-auto mt-6 overflow-hidden">
+                        <div 
+                          className="h-full bg-gradient-to-r from-blue-500 to-indigo-500 transition-all duration-500 ease-in-out rounded-full"
+                          style={{ width: `${progressPercentage}%` }}
+                        ></div>
+                      </div>
+                      
+                      <p className="text-gray-500 text-xs mt-3">
+                        {progressPercentage < 100 
+                          ? `Estimated time remaining: ${Math.max(10 - checkAttempts, 1)} seconds` 
+                          : 'Finalizing...'}
+                      </p>
                     </div>
-                    <p className="text-gray-700 font-medium">{loadingText}</p>
-                    <p className="text-sm text-gray-500 mt-1">This may take a few moments</p>
-                    
-                    {/* Animated progress bar */}
-                    <div className="w-64 h-1.5 bg-gray-200 rounded-full mx-auto mt-4 overflow-hidden">
-                      <div 
-                        className="h-full bg-blue-500 transition-all duration-500 ease-in-out rounded-full"
-                        style={{ width: `${progressPercentage}%` }}
-                      ></div>
-                    </div>
-                    
-                    {/* Estimated time remaining */}
-                    <p className="text-xs text-gray-400 mt-2">
-                      {progressPercentage < 100 
-                        ? `Estimated time remaining: ${Math.max(10 - checkAttempts, 1)} seconds` 
-                        : 'Finalizing...'}
-                    </p>
                   </div>
                 )}
                 
@@ -341,41 +331,49 @@ const PropertyDetails = ({ property }) => {
                   <img 
                     src={streetViewUrl} 
                     alt="Street View" 
-                    className="w-full h-auto"
+                    className="w-full h-full object-cover"
                     onError={() => setStreetViewStatus('error')}
                   />
                 )}
                 
                 {streetViewStatus === 'error' && (
-                  <div className="p-8 text-center">
-                    <p className="text-gray-500">Street view not available for this property</p>
-                    <button 
-                      onClick={handleRetry}
-                      disabled={isRetrying}
-                      className="mt-3 flex items-center gap-2 mx-auto text-sm text-blue-600 hover:text-blue-800 hover:underline"
-                    >
-                      {isRetrying ? (
-                        <>
-                          <Loader2 className="w-4 h-4 animate-spin" />
-                          Trying again...
-                        </>
-                      ) : (
-                        <>
-                          <RefreshCw className="w-4 h-4" />
-                          Try again
-                        </>
-                      )}
-                    </button>
+                  <div className="absolute inset-0 flex items-center justify-center bg-gradient-to-br from-gray-50 to-gray-100">
+                    <div className="text-center p-8">
+                      <div className="w-16 h-16 mx-auto mb-4 bg-gray-200 rounded-full flex items-center justify-center">
+                        <MapPin className="w-8 h-8 text-gray-400" />
+                      </div>
+                      <p className="text-gray-600 font-medium">Street view not available</p>
+                      <button 
+                        onClick={handleRetry}
+                        disabled={isRetrying}
+                        className="mt-4 inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50"
+                      >
+                        {isRetrying ? (
+                          <>
+                            <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                            Trying again...
+                          </>
+                        ) : (
+                          <>
+                            <RefreshCw className="w-4 h-4 mr-2" />
+                            Try again
+                          </>
+                        )}
+                      </button>
+                    </div>
                   </div>
                 )}
               </div>
             </div>
 
-            {/* Original content */}
+            {/* Enhanced Information Sections */}
             <div className="grid md:grid-cols-2 gap-6">
-              <div>
-                <h4 className="font-semibold text-gray-900 mb-4">Basic Information</h4>
-                <div className="space-y-2">
+              <div className="bg-white rounded-2xl border border-gray-200 p-6 shadow-sm">
+                <h4 className="font-semibold text-gray-900 mb-6 flex items-center">
+                  <Building className="h-5 w-5 mr-2 text-blue-600" />
+                  Basic Information
+                </h4>
+                <div className="space-y-4">
                   <InfoItem 
                     label="Property Type" 
                     value={property.summary?.propclass || property.summary?.proptype} 
@@ -397,20 +395,25 @@ const PropertyDetails = ({ property }) => {
                     <InfoItem 
                       label="Bedrooms" 
                       value={property.building.rooms.beds}
+                      icon={Home}
                     />
                   )}
                   {property.building?.rooms?.bathstotal && (
                     <InfoItem 
                       label="Bathrooms" 
                       value={property.building.rooms.bathstotal}
+                      icon={Home}
                     />
                   )}
                 </div>
               </div>
               
-              <div>
-                <h4 className="font-semibold text-gray-900 mb-4">Valuation</h4>
-                <div className="space-y-2">
+              <div className="bg-white rounded-2xl border border-gray-200 p-6 shadow-sm">
+                <h4 className="font-semibold text-gray-900 mb-6 flex items-center">
+                  <DollarSign className="h-5 w-5 mr-2 text-green-600" />
+                  Valuation
+                </h4>
+                <div className="space-y-4">
                   <InfoItem 
                     label="Market Value" 
                     value={marketValues.mktttlvalue || calculations.calcttlvalue}
@@ -421,21 +424,25 @@ const PropertyDetails = ({ property }) => {
                     label="Assessed Value" 
                     value={assessedValues.assdttlvalue}
                     formatter={formatCurrency}
+                    icon={DollarSign}
                   />
                   <InfoItem 
                     label="Land Value" 
                     value={marketValues.mktlandvalue || calculations.calclandvalue || assessedValues.assdlandvalue}
                     formatter={formatCurrency}
+                    icon={DollarSign}
                   />
                   <InfoItem 
                     label="Last Sale Price" 
                     value={property.sale?.amount?.saleamt}
                     formatter={formatCurrency}
+                    icon={DollarSign}
                   />
                   <InfoItem 
                     label="Last Sale Date" 
                     value={property.sale?.salesearchdate}
                     formatter={formatDate}
+                    icon={Calendar}
                   />
                 </div>
               </div>
@@ -443,224 +450,287 @@ const PropertyDetails = ({ property }) => {
           </div>
         )}
 
+        {/* Other tabs with enhanced styling */}
         {activeTab === 'details' && (
-          <div className="grid md:grid-cols-2 gap-6">
-            <div>
-              <h4 className="font-semibold text-gray-900 mb-4">Building Details</h4>
-              <div className="space-y-2">
-                <InfoItem label="Year Built" value={property.summary?.yearbuilt} />
-                <InfoItem 
-                  label="Total Size" 
-                  value={property.building?.size?.universalsize} 
-                  formatter={(v) => `${formatNumber(v)} sq ft`}
-                />
-                <InfoItem 
-                  label="Living Area" 
-                  value={property.building?.size?.livingsize} 
-                  formatter={(v) => `${formatNumber(v)} sq ft`}
-                />
-                <InfoItem 
-                  label="Stories" 
-                  value={property.building?.summary?.levels || property.summary?.levels} 
-                />
-                <InfoItem label="Total Rooms" value={property.building?.rooms?.roomsTotal} />
-                <InfoItem label="Bedrooms" value={property.building?.rooms?.beds} />
-                <InfoItem label="Full Bathrooms" value={property.building?.rooms?.bathsfull} />
-                <InfoItem label="Half Bathrooms" value={property.building?.rooms?.bathshalf} />
-                <InfoItem label="Fireplaces" value={property.building?.interior?.fplccount} />
-              </div>
-            </div>
-            
-            <div>
-              <h4 className="font-semibold text-gray-900 mb-4">Lot Information</h4>
-              <div className="space-y-2">
-                <InfoItem label="Lot Size (acres)" value={property.lot?.lotsize1} />
-                <InfoItem 
-                  label="Lot Size (sq ft)" 
-                  value={property.lot?.lotsize2} 
-                  formatter={formatNumber}
-                />
-                <InfoItem label="Lot Depth" value={property.lot?.depth} />
-                <InfoItem label="Lot Frontage" value={property.lot?.frontage} />
-                <InfoItem 
-                  label="Pool" 
-                  value={property.lot?.poolflag === 'Y' ? 'Yes' : (property.lot?.pooltype === 'NO POOL' ? 'No' : null)}
-                />
-                <InfoItem label="Garage Type" value={property.lot?.garagetype} />
-                <InfoItem 
-                  label="Garage Size" 
-                  value={property.lot?.garageSquareFootage} 
-                  formatter={(v) => `${formatNumber(v)} sq ft`}
-                />
-              </div>
-            </div>
-          </div>
-        )}
-
-        {activeTab === 'valuation' && (
-          <div className="grid md:grid-cols-2 gap-6">
-            <div>
-              <h4 className="font-semibold text-gray-900 mb-4">Assessment</h4>
-              <div className="space-y-2">
-                <InfoItem 
-                  label="Total Assessed Value" 
-                  value={assessedValues.assdttlvalue}
-                  formatter={formatCurrency}
-                />
-                <InfoItem 
-                  label="Improvements Value" 
-                  value={assessedValues.assdimprvalue}
-                  formatter={formatCurrency}
-                />
-                <InfoItem 
-                  label="Land Value" 
-                  value={assessedValues.assdlandvalue}
-                  formatter={formatCurrency}
-                />
-                <InfoItem 
-                  label="Tax Year" 
-                  value={taxInfo.taxyear}
-                />
-                <InfoItem 
-                  label="Annual Tax" 
-                  value={taxInfo.taxamt}
-                  formatter={formatCurrency}
-                />
-              </div>
-            </div>
-            
-            <div>
-              <h4 className="font-semibold text-gray-900 mb-4">Market Value</h4>
-              <div className="space-y-2">
-                <InfoItem 
-                  label="Total Market Value" 
-                  value={marketValues.mktttlvalue || calculations.calcttlvalue}
-                  formatter={formatCurrency}
-                />
-                <InfoItem 
-                  label="Market Improvements Value" 
-                  value={marketValues.mktimprvalue || calculations.calcimprvalue}
-                  formatter={formatCurrency}
-                />
-                <InfoItem 
-                  label="Market Land Value" 
-                  value={marketValues.mktlandvalue || calculations.calclandvalue}
-                  formatter={formatCurrency}
-                />
-              </div>
-            </div>
-          </div>
-        )}
-
-        {activeTab === 'owner' && (
-          <div>
-            <h4 className="font-semibold text-gray-900 mb-4">Owner Information</h4>
-            {property.owner ? (
-              Array.isArray(property.owner) ? (
-                property.owner.map((owner, index) => (
-                  <div key={index} className="mb-6">
-                    {property.owner.length > 1 && (
-                      <h5 className="font-medium text-gray-900 mb-2">Owner {index + 1}</h5>
-                    )}
-                    <div className="space-y-2">
-                      <InfoItem label="Name" value={owner.name} />
-                      <InfoItem label="Co-Owner" value={owner.secondname} />
-                      <InfoItem label="Owner Type" value={owner.ownertype} />
-                      {owner.mailingaddress && (
-                        <>
-                          <InfoItem label="Mailing Address" value={owner.mailingaddress.line1} />
-                          {owner.mailingaddress.line2 && (
-                            <InfoItem label="" value={owner.mailingaddress.line2} />
-                          )}
-                          <InfoItem 
-                            label="City, State ZIP" 
-                            value={`${owner.mailingaddress.city || ''}, ${owner.mailingaddress.state || ''} ${owner.mailingaddress.postal1 || ''}`}
-                          />
-                        </>
-                      )}
-                    </div>
-                  </div>
-                ))
-              ) : (
-                <div className="space-y-2">
-                  <InfoItem label="Owner Name" value={property.owner.owner1?.fullname} />
+          <div className="bg-white rounded-2xl border border-gray-200 p-6 shadow-sm">
+            <div className="grid md:grid-cols-2 gap-6">
+              <div>
+                <h4 className="font-semibold text-gray-900 mb-6 flex items-center">
+                  <Building className="h-5 w-5 mr-2 text-blue-600" />
+                  Building Details
+                </h4>
+                <div className="space-y-4">
+                  <InfoItem label="Year Built" value={property.summary?.yearbuilt} icon={Calendar} />
                   <InfoItem 
-                    label="Corporate" 
-                    value={property.owner.corporateindicator === 'Y' ? 'Yes' : 'No'}
+                    label="Total Size" 
+                    value={property.building?.size?.universalsize} 
+                    formatter={(v) => `${formatNumber(v)} sq ft`}
+                    icon={Maximize2}
                   />
                   <InfoItem 
-                    label="Owner Status" 
-                    value={property.owner.absenteeownerstatus === 'O' ? 'Owner Occupied' : 'Absentee Owner'}
-                  />
-                  <InfoItem label="Mailing Address" value={property.owner.mailingaddressoneline} />
-                </div>
-              )
-            ) : (
-              <p className="text-gray-500">No owner information available</p>
-            )}
-          </div>
-        )}
+                    label="Living Area"
+                    value={property.building?.size?.livingsize} 
+                   formatter={(v) => `${formatNumber(v)} sq ft`}
+                   icon={Home}
+                 />
+                 <InfoItem 
+                   label="Stories" 
+                   value={property.building?.summary?.levels || property.summary?.levels} 
+                   icon={Building}
+                 />
+                 <InfoItem label="Total Rooms" value={property.building?.rooms?.roomsTotal} icon={Home} />
+                 <InfoItem label="Bedrooms" value={property.building?.rooms?.beds} icon={Home} />
+                 <InfoItem label="Full Bathrooms" value={property.building?.rooms?.bathsfull} icon={Home} />
+                 <InfoItem label="Half Bathrooms" value={property.building?.rooms?.bathshalf} icon={Home} />
+                 <InfoItem label="Fireplaces" value={property.building?.interior?.fplccount} icon={Home} />
+               </div>
+             </div>
+             
+             <div>
+               <h4 className="font-semibold text-gray-900 mb-6 flex items-center">
+                 <Map className="h-5 w-5 mr-2 text-green-600" />
+                 Lot Information
+               </h4>
+               <div className="space-y-4">
+                 <InfoItem label="Lot Size (acres)" value={property.lot?.lotsize1} icon={Map} />
+                 <InfoItem 
+                   label="Lot Size (sq ft)" 
+                   value={property.lot?.lotsize2} 
+                   formatter={formatNumber}
+                   icon={Map}
+                 />
+                 <InfoItem label="Lot Depth" value={property.lot?.depth} icon={Map} />
+                 <InfoItem label="Lot Frontage" value={property.lot?.frontage} icon={Map} />
+                 <InfoItem 
+                   label="Pool" 
+                   value={property.lot?.poolflag === 'Y' ? 'Yes' : (property.lot?.pooltype === 'NO POOL' ? 'No' : null)}
+                   icon={Info}
+                 />
+                 <InfoItem label="Garage Type" value={property.lot?.garagetype} icon={Building} />
+                 <InfoItem 
+                   label="Garage Size" 
+                   value={property.lot?.garageSquareFootage} 
+                   formatter={(v) => `${formatNumber(v)} sq ft`}
+                   icon={Building}
+                 />
+               </div>
+             </div>
+           </div>
+         </div>
+       )}
 
-        {activeTab === 'history' && (
-          <div>
-            <h4 className="font-semibold text-gray-900 mb-4">Transaction History</h4>
-            {(property.sale || property.expandedProfile?.salesHistory?.length > 0) ? (
-              <div className="space-y-4">
-                {property.expandedProfile?.salesHistory?.map((history, index) => (
-                  <div key={index} className="border-l-4 border-blue-600 pl-4 pb-4">
-                    <h5 className="font-medium text-blue-800">
-                      {formatDate(history.recordingDate)}
-                    </h5>
-                    <div className="mt-2 space-y-1 text-sm">
-                      <InfoItem label="Amount" value={history.amount} formatter={formatCurrency} />
-                      <InfoItem label="Type" value={history.transactionType} />
-                      <InfoItem label="Document #" value={history.recordingDocumentNumber} />
-                      <InfoItem label="Grantee" value={history.grantee} />
-                      <InfoItem label="Grantor" value={history.grantor} />
-                    </div>
-                  </div>
-                ))}
-                
-                {property.sale && !property.expandedProfile?.salesHistory?.length && (
-                  <div className="border-l-4 border-blue-600 pl-4 pb-4">
-                    <h5 className="font-medium text-blue-800">
-                      {formatDate(property.sale.salesearchdate)}
-                    </h5>
-                    <div className="mt-2 space-y-1 text-sm">
-                      <InfoItem label="Sale Price" value={property.sale.amount?.saleamt} formatter={formatCurrency} />
-                      <InfoItem label="Document Type" value={property.sale.amount?.saledoctype} />
-                      <InfoItem label="Document Number" value={property.sale.amount?.saledocnum} />
-                      <InfoItem label="Transaction Type" value={property.sale.amount?.saletranstype} />
-                    </div>
-                  </div>
-                )}
-              </div>
-            ) : (
-              <p className="text-gray-500">No transaction history available</p>
-            )}
-          </div>
-        )}
-      </div>
-    </div>
-  );
+       {activeTab === 'valuation' && (
+         <div className="bg-white rounded-2xl border border-gray-200 p-6 shadow-sm">
+           <div className="grid md:grid-cols-2 gap-6">
+             <div>
+               <h4 className="font-semibold text-gray-900 mb-6 flex items-center">
+                 <DollarSign className="h-5 w-5 mr-2 text-blue-600" />
+                 Assessment
+               </h4>
+               <div className="space-y-4">
+                 <InfoItem 
+                   label="Total Assessed Value" 
+                   value={assessedValues.assdttlvalue}
+                   formatter={formatCurrency}
+                   icon={DollarSign}
+                 />
+                 <InfoItem 
+                   label="Improvements Value" 
+                   value={assessedValues.assdimprvalue}
+                   formatter={formatCurrency}
+                   icon={DollarSign}
+                 />
+                 <InfoItem 
+                   label="Land Value" 
+                   value={assessedValues.assdlandvalue}
+                   formatter={formatCurrency}
+                   icon={DollarSign}
+                 />
+                 <InfoItem 
+                   label="Tax Year" 
+                   value={taxInfo.taxyear}
+                   icon={Calendar}
+                 />
+                 <InfoItem 
+                   label="Annual Tax" 
+                   value={taxInfo.taxamt}
+                   formatter={formatCurrency}
+                   icon={DollarSign}
+                 />
+               </div>
+             </div>
+             
+             <div>
+               <h4 className="font-semibold text-gray-900 mb-6 flex items-center">
+                 <DollarSign className="h-5 w-5 mr-2 text-green-600" />
+                 Market Value
+               </h4>
+               <div className="space-y-4">
+                 <InfoItem 
+                   label="Total Market Value" 
+                   value={marketValues.mktttlvalue || calculations.calcttlvalue}
+                   formatter={formatCurrency}
+                   icon={DollarSign}
+                 />
+                 <InfoItem 
+                   label="Market Improvements Value" 
+                   value={marketValues.mktimprvalue || calculations.calcimprvalue}
+                   formatter={formatCurrency}
+                   icon={DollarSign}
+                 />
+                 <InfoItem 
+                   label="Market Land Value" 
+                   value={marketValues.mktlandvalue || calculations.calclandvalue}
+                   formatter={formatCurrency}
+                   icon={DollarSign}
+                 />
+               </div>
+             </div>
+           </div>
+         </div>
+       )}
+
+       {activeTab === 'owner' && (
+         <div className="bg-white rounded-2xl border border-gray-200 p-6 shadow-sm">
+           <h4 className="font-semibold text-gray-900 mb-6 flex items-center">
+             <User className="h-5 w-5 mr-2 text-purple-600" />
+             Owner Information
+           </h4>
+           {property.owner ? (
+             Array.isArray(property.owner) ? (
+               <div className="space-y-6">
+                 {property.owner.map((owner, index) => (
+                   <div key={index} className="bg-gray-50 rounded-xl p-6">
+                     {property.owner.length > 1 && (
+                       <h5 className="font-medium text-gray-900 mb-4">Owner {index + 1}</h5>
+                     )}
+                     <div className="space-y-4">
+                       <InfoItem label="Name" value={owner.name} icon={User} />
+                       <InfoItem label="Co-Owner" value={owner.secondname} icon={User} />
+                       <InfoItem label="Owner Type" value={owner.ownertype} icon={Info} />
+                       {owner.mailingaddress && (
+                         <>
+                           <InfoItem label="Mailing Address" value={owner.mailingaddress.line1} icon={MapPin} />
+                           {owner.mailingaddress.line2 && (
+                             <InfoItem label="" value={owner.mailingaddress.line2} icon={MapPin} />
+                           )}
+                           <InfoItem 
+                             label="City, State ZIP" 
+                             value={`${owner.mailingaddress.city || ''}, ${owner.mailingaddress.state || ''} ${owner.mailingaddress.postal1 || ''}`}
+                             icon={MapPin}
+                           />
+                         </>
+                       )}
+                     </div>
+                   </div>
+                 ))}
+               </div>
+             ) : (
+               <div className="bg-gray-50 rounded-xl p-6">
+                 <div className="space-y-4">
+                   <InfoItem label="Owner Name" value={property.owner.owner1?.fullname} icon={User} />
+                   <InfoItem 
+                     label="Corporate" 
+                     value={property.owner.corporateindicator === 'Y' ? 'Yes' : 'No'}
+                     icon={Building}
+                   />
+                   <InfoItem 
+                     label="Owner Status" 
+                     value={property.owner.absenteeownerstatus === 'O' ? 'Owner Occupied' : 'Absentee Owner'}
+                     icon={Home}
+                   />
+                   <InfoItem label="Mailing Address" value={property.owner.mailingaddressoneline} icon={MapPin} />
+                 </div>
+               </div>
+             )
+           ) : (
+             <div className="text-center py-12">
+               <div className="w-16 h-16 mx-auto mb-4 bg-gray-100 rounded-full flex items-center justify-center">
+                 <User className="w-8 h-8 text-gray-400" />
+               </div>
+               <p className="text-gray-500 font-medium">No owner information available</p>
+             </div>
+           )}
+         </div>
+       )}
+
+       {activeTab === 'history' && (
+         <div className="bg-white rounded-2xl border border-gray-200 p-6 shadow-sm">
+           <h4 className="font-semibold text-gray-900 mb-6 flex items-center">
+             <Calendar className="h-5 w-5 mr-2 text-indigo-600" />
+             Transaction History
+           </h4>
+           {(property.sale || property.expandedProfile?.salesHistory?.length > 0) ? (
+             <div className="space-y-6">
+               {property.expandedProfile?.salesHistory?.map((history, index) => (
+                 <div key={index} className="relative pl-8 pb-6">
+                   <div className="absolute left-0 top-0 w-4 h-4 bg-blue-600 rounded-full border-4 border-white shadow-lg"></div>
+                   {index < property.expandedProfile.salesHistory.length - 1 && (
+                     <div className="absolute left-2 top-4 w-0.5 h-full bg-gray-200"></div>
+                   )}
+                   <div className="bg-blue-50 rounded-xl p-6 ml-4">
+                     <h5 className="font-semibold text-blue-900 text-lg mb-4">
+                       {formatDate(history.recordingDate)}
+                     </h5>
+                     <div className="grid md:grid-cols-2 gap-4">
+                       <InfoItem label="Amount" value={history.amount} formatter={formatCurrency} icon={DollarSign} />
+                       <InfoItem label="Type" value={history.transactionType} icon={Info} />
+                       <InfoItem label="Document #" value={history.recordingDocumentNumber} icon={Info} />
+                       <InfoItem label="Grantee" value={history.grantee} icon={User} />
+                       <InfoItem label="Grantor" value={history.grantor} icon={User} />
+                     </div>
+                   </div>
+                 </div>
+               ))}
+               
+               {property.sale && !property.expandedProfile?.salesHistory?.length && (
+                 <div className="relative pl-8">
+                   <div className="absolute left-0 top-0 w-4 h-4 bg-blue-600 rounded-full border-4 border-white shadow-lg"></div>
+                   <div className="bg-blue-50 rounded-xl p-6 ml-4">
+                     <h5 className="font-semibold text-blue-900 text-lg mb-4">
+                       {formatDate(property.sale.salesearchdate)}
+                     </h5>
+                     <div className="grid md:grid-cols-2 gap-4">
+                       <InfoItem label="Sale Price" value={property.sale.amount?.saleamt} formatter={formatCurrency} icon={DollarSign} />
+                       <InfoItem label="Document Type" value={property.sale.amount?.saledoctype} icon={Info} />
+                       <InfoItem label="Document Number" value={property.sale.amount?.saledocnum} icon={Info} />
+                       <InfoItem label="Transaction Type" value={property.sale.amount?.saletranstype} icon={Info} />
+                     </div>
+                   </div>
+                 </div>
+               )}
+             </div>
+           ) : (
+             <div className="text-center py-12">
+               <div className="w-16 h-16 mx-auto mb-4 bg-gray-100 rounded-full flex items-center justify-center">
+                 <Calendar className="w-8 h-8 text-gray-400" />
+               </div>
+               <p className="text-gray-500 font-medium">No transaction history available</p>
+             </div>
+           )}
+         </div>
+       )}
+     </div>
+   </div>
+ );
 };
 
 const getPropertyAddress = (property) => {
-  if (property.address?.oneLine) return property.address.oneLine;
-  
-  let address = '';
-  if (property.address?.line1) address += property.address.line1;
-  
-  const parts = [];
-  if (property.address?.city) parts.push(property.address.city);
-  if (property.address?.state) parts.push(property.address.state);
-  if (property.address?.postal1) parts.push(property.address.postal1);
-  
-  if (parts.length > 0) {
-    address += (address ? ', ' : '') + parts.join(', ');
-  }
-  
-  return address || 'Address Unknown';
+ if (property.address?.oneLine) return property.address.oneLine;
+ 
+ let address = '';
+ if (property.address?.line1) address += property.address.line1;
+ 
+ const parts = [];
+ if (property.address?.city) parts.push(property.address.city);
+ if (property.address?.state) parts.push(property.address.state);
+ if (property.address?.postal1) parts.push(property.address.postal1);
+ 
+ if (parts.length > 0) {
+   address += (address ? ', ' : '') + parts.join(', ');
+ }
+ 
+ return address || 'Address Unknown';
 };
 
 export default PropertyDetails;
