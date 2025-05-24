@@ -6,6 +6,7 @@ const connectDB = require('./config/db');
 const path = require('path');
 const fs = require('fs');
 const { initGridFS } = require('./utils/gridfsStorage');
+const wealthRoutes = require('./routes/wealthRoutes');
 
 // Load env vars
 dotenv.config();
@@ -24,6 +25,7 @@ require('./models/Company');
 require('./models/Invitation');
 require('./models/SearchHistory');
 require('./models/SavedProperty');
+require('./models/WealthEstimation');
 
 // Route files
 const companyRoutes = require('./routes/companyRoutes');
@@ -79,6 +81,7 @@ app.use('/api/users', userRoutes);
 app.use('/api/user', userDataRoutes);
 app.use('/api/analytics', analyticsRoutes);
 app.use('/api/images', imageRoutes);  // Mount the new image routes
+app.use('/api/wealth', wealthRoutes);
 
 // Test endpoint for new routes
 app.get('/api/routes-test', (req, res) => {

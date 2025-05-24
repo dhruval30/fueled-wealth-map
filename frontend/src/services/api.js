@@ -444,6 +444,43 @@ export const requestStreetViewCapture = async (address, propertyId) => {
   }
 };
 
+export const getWealthEstimations = async () => {
+  try {
+    const response = await api.get('/wealth/estimations');
+    return response.data;
+  } catch (error) {
+    if (error.response) {
+      throw error.response.data?.message || 'Failed to get wealth estimations';
+    }
+    throw 'Failed to get wealth estimations.';
+  }
+};
+
+// Run wealth estimations
+export const runWealthEstimations = async () => {
+  try {
+    const response = await api.post('/wealth/estimate');
+    return response.data;
+  } catch (error) {
+    if (error.response) {
+      throw error.response.data?.message || 'Failed to run wealth estimations';
+    }
+    throw 'Failed to run wealth estimations.';
+  }
+};
+
+export const deleteWealthEstimation = async (estimationId) => {
+  try {
+    const response = await api.delete(`/wealth/estimations/${estimationId}`);
+    return response.data;
+  } catch (error) {
+    if (error.response) {
+      throw error.response.data?.message || 'Failed to delete wealth estimation';
+    }
+    throw 'Failed to delete wealth estimation.';
+  }
+ };
+
 // Get API key
 export const getApiKey = () => {
   return localStorage.getItem('attomApiKey') || process.env.REACT_APP_ATTOM_API_KEY;
