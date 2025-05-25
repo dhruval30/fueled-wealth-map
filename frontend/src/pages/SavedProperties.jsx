@@ -7,7 +7,7 @@ import {
   Loader2,
   MapPin,
   Search,
-  Trash2
+  X
 } from 'lucide-react';
 import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
@@ -290,7 +290,7 @@ return (
               onClick={() => setSelectedProperty(null)}
               className="text-gray-500 hover:text-gray-700"
             >
-              <Trash2 className="h-5 w-5" />
+              <X className="h-5 w-5" />
             </button>
           </div>
           <div className="p-6 overflow-auto max-h-[calc(90vh-120px)]">
