@@ -138,12 +138,15 @@ const MetricCard = memo(({ icon: Icon, title, value, subtitle, badge, gradient }
 ));
 
 // Wealth Estimation Section Component
+// In the WealthEstimationSection component of Dashboard.jsx, replace the existing code with:
+
 const WealthEstimationSection = () => {
   const [estimations, setEstimations] = useState([]);
   const [loading, setLoading] = useState(false);
   const [estimating, setEstimating] = useState(false);
   const [error, setError] = useState(null);
   const [summary, setSummary] = useState(null);
+  const [expandedReasoning, setExpandedReasoning] = useState(null);
 
   // Fetch existing estimations
   const fetchEstimations = useCallback(async () => {
@@ -205,7 +208,9 @@ const WealthEstimationSection = () => {
 
   const formatCurrency = (value) => {
     if (!value) return 'N/A';
-    if (value >= 1000000) {
+    if (value >= 1000000000) {
+      return `$${(value / 1000000000).toFixed(1)}B`;
+    } else if (value >= 1000000) {
       return `$${(value / 1000000).toFixed(1)}M`;
     } else if (value >= 1000) {
       return `$${(value / 1000).toFixed(0)}K`;
@@ -232,6 +237,10 @@ const WealthEstimationSection = () => {
     }
   };
 
+  const toggleReasoning = (estimationId) => {
+    setExpandedReasoning(expandedReasoning === estimationId ? null : estimationId);
+  };
+
   return (
     <div className="space-y-6">
       {/* Header Section */}
@@ -243,7 +252,7 @@ const WealthEstimationSection = () => {
               AI-Powered Wealth Estimation
             </h3>
             <p className="text-gray-600">
-              Get estimated net worth for property owners using advanced AI analysis
+              Get estimated net worth for property owners using advanced AI analysis and real income data
             </p>
           </div>
           <button
@@ -333,60 +342,88 @@ const WealthEstimationSection = () => {
           ) : (
             <div className="space-y-4">
               {estimations.map((estimation) => (
-                <div key={estimation._id} className="border border-gray-200 rounded-xl p-5 hover:shadow-md transition-all duration-200 bg-gray-50 hover:bg-white">
-                  <div className="flex items-start justify-between">
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center mb-2">
-                        <User className="h-5 w-5 text-gray-400 mr-2 flex-shrink-0" />
-                        <h6 className="font-semibold text-gray-900 truncate">
-                          {estimation.ownerName}
-                        </h6>
-                        <span className={`ml-3 inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${getConfidenceColor(estimation.confidence)}`}>
-                          {getConfidenceIcon(estimation.confidence)}
-                          <span className="ml-1">{estimation.confidence}</span>
-                        </span>
+                <div key={estimation._id} className="border border-gray-200 rounded-xl overflow-hidden hover:shadow-md transition-all duration-200 bg-gray-50 hover:bg-white">
+                  <div className="p-5">
+                    <div className="flex items-start justify-between">
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center mb-2">
+                          <User className="h-5 w-5 text-gray-400 mr-2 flex-shrink-0" />
+                          <h6 className="font-semibold text-gray-900 truncate">
+                            {estimation.ownerName}
+                          </h6>
+                          <span className={`ml-3 inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${getConfidenceColor(estimation.confidence)}`}>
+                            {getConfidenceIcon(estimation.confidence)}
+                            <span className="ml-1">{estimation.confidence}</span>
+                          </span>
+                        </div>
+                        
+                        <div className="flex items-center text-sm text-gray-600 mb-3">
+                          <MapPin className="h-4 w-4 mr-1 flex-shrink-0" />
+                          <span className="truncate">{estimation.propertyAddress}</span>
+                        </div>
+                        
+                        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
+                          <div>
+                            <span className="text-gray-500 block">Property Value</span>
+                            <span className="font-medium text-gray-900">
+                              {formatCurrency(estimation.propertyValue)}
+                            </span>
+                          </div>
+                          <div>
+                            <span className="text-gray-500 block">Annual Tax</span>
+                            <span className="font-medium text-gray-900">
+                              {formatCurrency(estimation.annualPropertyTax)}
+                            </span>
+                          </div>
+                          <div>
+                            <span className="text-gray-500 block">ZIP Median</span>
+                            <span className="font-medium text-gray-900">
+                              {formatCurrency(estimation.zipCodeMedianNetWorth)}
+                            </span>
+                          </div>
+                          <div>
+                            <span className="text-gray-500 block">Estimated Date</span>
+                            <span className="font-medium text-gray-900">
+                              {new Date(estimation.estimatedAt).toLocaleDateString()}
+                            </span>
+                          </div>
+                        </div>
+
+                        <div className="mt-4">
+                          <button
+                            onClick={() => toggleReasoning(estimation._id)}
+                            className="text-indigo-600 hover:text-indigo-800 text-sm font-medium flex items-center"
+                          >
+                            <Brain className="h-4 w-4 mr-1" />
+                            Logic behind this
+                            <ChevronRight className={`h-4 w-4 ml-1 transition-transform ${expandedReasoning === estimation._id ? 'rotate-90' : ''}`} />
+                          </button>
+                        </div>
                       </div>
                       
-                      <div className="flex items-center text-sm text-gray-600 mb-3">
-                        <MapPin className="h-4 w-4 mr-1 flex-shrink-0" />
-                        <span className="truncate">{estimation.propertyAddress}</span>
-                      </div>
-                      
-                      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
-                        <div>
-                          <span className="text-gray-500 block">Property Value</span>
-                          <span className="font-medium text-gray-900">
-                            {formatCurrency(estimation.propertyValue)}
-                          </span>
+                      <div className="ml-6 text-right">
+                        <div className="text-xs text-gray-500 mb-1">Estimated Net Worth</div>
+                        <div className="text-2xl font-bold text-emerald-600">
+                          {formatCurrency(estimation.estimatedNetWorth)}
                         </div>
-                        <div>
-                          <span className="text-gray-500 block">Annual Tax</span>
-                          <span className="font-medium text-gray-900">
-                            {formatCurrency(estimation.annualPropertyTax)}
-                          </span>
-                        </div>
-                        <div>
-                          <span className="text-gray-500 block">ZIP Median</span>
-                          <span className="font-medium text-gray-900">
-                            {formatCurrency(estimation.zipCodeMedianNetWorth)}
-                          </span>
-                        </div>
-                        <div>
-                          <span className="text-gray-500 block">Estimated Date</span>
-                          <span className="font-medium text-gray-900">
-                            {new Date(estimation.estimatedAt).toLocaleDateString()}
-                          </span>
-                        </div>
-                      </div>
-                    </div>
-                    
-                    <div className="ml-6 text-right">
-                      <div className="text-xs text-gray-500 mb-1">Estimated Net Worth</div>
-                      <div className="text-2xl font-bold text-emerald-600">
-                        {formatCurrency(estimation.estimatedNetWorth)}
                       </div>
                     </div>
                   </div>
+
+                  {/* Reasoning Panel */}
+                  {expandedReasoning === estimation._id && (
+                    <div className="border-t border-gray-200 bg-gray-50 p-5">
+                      <div className="bg-white rounded-lg p-4 border border-gray-200">
+                        <h6 className="font-semibold text-gray-900 mb-3 flex items-center">
+                          <Brain className="h-4 w-4 mr-2 text-indigo-600" />
+                          AI Analysis & Reasoning
+                        </h6>
+                        <div className="text-sm text-gray-700 whitespace-pre-wrap">
+                          {estimation.groqResponse || 'No detailed reasoning available for this estimation.'}
+                        </div>
+                      </div>
+                    </div>
+                  )}
                 </div>
               ))}
             </div>

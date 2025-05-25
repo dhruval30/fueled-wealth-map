@@ -32,10 +32,15 @@ router.get('/estimations', protect, async (req, res) => {
 // Run new estimations for properties without existing estimations
 router.post('/estimate', protect, async (req, res) => {
   try {
+    console.log('Starting wealth estimation process...');
+    console.log('User company:', req.user.company);
+    
     // Get all saved properties for the company
     const savedProperties = await SavedProperty.find({
       company: req.user.company
     });
+
+    console.log(`Found ${savedProperties.length} saved properties`);
 
     if (savedProperties.length === 0) {
       return res.status(400).json({
@@ -53,47 +58,71 @@ router.post('/estimate', protect, async (req, res) => {
       existingEstimations.map(est => est.savedProperty.toString())
     );
 
+    console.log(`Found ${existingEstimations.length} existing estimations`);
+
     // Filter properties that don't have estimations yet
     const propertiesNeedingEstimation = savedProperties.filter(
       property => !existingPropertyIds.has(property._id.toString())
     );
 
+    console.log(`${propertiesNeedingEstimation.length} properties need new estimations`);
+
     if (propertiesNeedingEstimation.length === 0) {
       return res.status(200).json({
         success: true,
         message: 'All properties already have wealth estimations',
-        data: []
+        data: [],
+        summary: {
+          totalProperties: savedProperties.length,
+          validProperties: 0,
+          processed: 0,
+          successful: 0,
+          failed: 0
+        }
       });
     }
 
-    // Prepare data for estimation
+    // Prepare data for estimation with better property value extraction
     const propertiesData = propertiesNeedingEstimation.map(property => {
       const propertyData = property.propertyData;
-      const ownerName = propertyData?.owner?.owner1?.fullname || 'Unknown Owner';
+      
+      if (!propertyData) {
+        console.warn(`Property ${property._id} has no propertyData`);
+        return null;
+      }
+
+      const ownerName = propertyData?.owner?.owner1?.fullname || 
+                      propertyData?.owner?.owner1?.lastname || 
+                      'Unknown Owner';
+      
       const propertyAddress = propertyData?.fullAddress || 
-                            propertyData?.address?.oneLine || 
-                            'Unknown Address';
+                             propertyData?.address?.oneLine || 
+                             propertyData?.address?.line1 ||
+                             'Unknown Address';
 
-      // Extract property value from various possible paths
+      // Enhanced property value extraction
       const propertyValue = 
-        propertyData?.events?.assessment?.market?.mktttlvalue ||
+        propertyData?.events?.avm?.amount?.value ||  // AVM is most current
+        propertyData?.events?.assessment?.market?.mktttlvalue ||  // Market value
         propertyData?.assessment?.market?.mktttlvalue ||
-        propertyData?.assessment?.calculated?.calcttlvalue ||
-        propertyData?.events?.avm?.amount?.value ||
+        propertyData?.events?.sale?.amount?.saleamt ||  // Last sale price
         propertyData?.sale?.amount?.saleamt ||
+        propertyData?.assessment?.calculations?.calcttlvalue ||  // Calculated value
         null;
 
-      // Extract tax information
+      // Enhanced tax information extraction
       const annualPropertyTax = 
-        propertyData?.assessment?.tax?.taxamt ||
         propertyData?.events?.assessment?.tax?.taxamt ||
+        propertyData?.assessment?.tax?.taxamt ||
         null;
 
-      // Extract ZIP code
+      // ZIP code extraction
       const zipCode = 
         propertyData?.address?.postal1 ||
-        propertyData?.address?.zip ||
+        propertyData?.events?.address?.postal1 ||
         null;
+
+      console.log(`Property ${property._id}: Owner="${ownerName}", Value=${propertyValue}, Tax=${annualPropertyTax}, ZIP=${zipCode}`);
 
       return {
         savedPropertyId: property._id,
@@ -102,27 +131,53 @@ router.post('/estimate', protect, async (req, res) => {
         propertyValue,
         annualPropertyTax,
         zipCode,
-        zipCodeMedianNetWorth: zipCode ? getZipCodeMedianNetWorth(zipCode) : null
+        zipCodeMedianNetWorth: zipCode ? wealthEstimationService.getZipCodeMedianNetWorth(zipCode) : null
       };
+    }).filter(data => data !== null); // Remove null entries
+
+    console.log(`Prepared ${propertiesData.length} property data objects`);
+
+    // Filter out properties without sufficient data
+    const validPropertiesData = propertiesData.filter(data => {
+      const isValid = data.ownerName && 
+                     data.ownerName !== 'Unknown Owner' && 
+                     data.propertyValue && 
+                     data.propertyValue > 50000;
+      
+      if (!isValid) {
+        console.log(`Invalid property data: Owner="${data.ownerName}", Value=${data.propertyValue}`);
+      }
+      
+      return isValid;
     });
 
-    // Filter out properties without owner names
-    const validPropertiesData = propertiesData.filter(
-      data => data.ownerName && data.ownerName !== 'Unknown Owner'
-    );
+    console.log(`${validPropertiesData.length} properties have valid data for estimation`);
 
     if (validPropertiesData.length === 0) {
       return res.status(400).json({
         success: false,
-        message: 'No properties with valid owner information found'
+        message: 'No properties with sufficient data for wealth estimation',
+        details: {
+          totalFound: savedProperties.length,
+          needingEstimation: propertiesNeedingEstimation.length,
+          withData: propertiesData.length,
+          validForEstimation: validPropertiesData.length,
+          issues: 'Properties missing owner name or property value > $50,000'
+        }
       });
     }
 
-    // Batch estimate net worth
+    console.log(`Processing ${validPropertiesData.length} properties for wealth estimation`);
+
+    // Batch estimate net worth using the improved service
     const estimationResults = await wealthEstimationService.batchEstimateNetWorth(validPropertiesData);
+
+    console.log(`Estimation completed. ${estimationResults.length} results returned`);
 
     // Save successful estimations to database
     const savedEstimations = [];
+    const failedEstimations = [];
+    
     for (const result of estimationResults) {
       if (result.success) {
         try {
@@ -142,29 +197,47 @@ router.post('/estimate', protect, async (req, res) => {
 
           const saved = await wealthEstimation.save();
           savedEstimations.push(saved);
+          console.log(`Saved estimation for ${result.ownerName}: $${result.estimatedNetWorth?.toLocaleString()}`);
         } catch (saveError) {
           console.error('Error saving wealth estimation:', saveError);
+          failedEstimations.push({
+            ownerName: result.ownerName,
+            error: saveError.message
+          });
         }
+      } else {
+        failedEstimations.push({
+          ownerName: result.ownerName,
+          error: result.error
+        });
       }
     }
+
+    console.log(`Successfully saved ${savedEstimations.length} estimations`);
+    console.log(`Failed to save ${failedEstimations.length} estimations`);
 
     res.status(200).json({
       success: true,
       message: `Generated ${savedEstimations.length} new wealth estimations`,
       data: savedEstimations,
       summary: {
+        totalProperties: propertiesNeedingEstimation.length,
+        validProperties: validPropertiesData.length,
         processed: estimationResults.length,
         successful: savedEstimations.length,
-        failed: estimationResults.filter(r => !r.success).length
-      }
+        failed: failedEstimations.length
+      },
+      failures: failedEstimations.length > 0 ? failedEstimations : undefined
     });
 
   } catch (error) {
     console.error('Error running wealth estimations:', error);
+    console.error('Error stack:', error.stack);
     res.status(500).json({
       success: false,
       message: 'Failed to run wealth estimations',
-      error: error.message
+      error: error.message,
+      stack: process.env.NODE_ENV === 'development' ? error.stack : undefined
     });
   }
 });
@@ -204,56 +277,5 @@ router.delete('/estimations/:id', protect, async (req, res) => {
     });
   }
 });
-
-// Helper function to get ZIP code median net worth (simplified)
-function getZipCodeMedianNetWorth(zipCode) {
-  // This is a simplified implementation
-  // In a real application, you'd want to integrate with a service like:
-  // - Census API
-  // - Esri Demographics
-  // - DataAxle (formerly Infogroup)
-  // - Or maintain your own ZIP code wealth database
-
-  const zipCodeWealthEstimates = {
-    // High-wealth ZIP codes (examples)
-    '10021': 2500000, // Upper East Side, NYC
-    '10028': 2200000, // Upper East Side, NYC
-    '90210': 3000000, // Beverly Hills, CA
-    '94027': 2800000, // Atherton, CA
-    '06840': 2400000, // New Canaan, CT
-    '07620': 1800000, // Alpine, NJ
-    '33109': 2100000, // Miami Beach, FL
-    '94301': 2600000, // Palo Alto, CA
-    
-    // Medium-wealth ZIP codes (examples)
-    '10019': 800000,  // Manhattan, NYC
-    '90024': 1200000, // West LA, CA
-    '02138': 1500000, // Cambridge, MA
-    '60614': 900000,  // Lincoln Park, Chicago
-    '78703': 800000,  // Austin, TX
-    '30309': 650000,  // Atlanta, GA
-    
-    // Default ranges by first digit (very rough estimates)
-    '0': 400000, // Northeast
-    '1': 450000, // Northeast
-    '2': 380000, // Southeast
-    '3': 350000, // Southeast
-    '4': 320000, // Midwest
-    '5': 340000, // Midwest
-    '6': 360000, // South Central
-    '7': 380000, // South Central
-    '8': 420000, // Mountain/West
-    '9': 500000  // Pacific/West Coast
-  };
-
-  // Try exact match first
-  if (zipCodeWealthEstimates[zipCode]) {
-    return zipCodeWealthEstimates[zipCode];
-  }
-
-  // Fall back to regional estimate based on first digit
-  const firstDigit = zipCode.charAt(0);
-  return zipCodeWealthEstimates[firstDigit] || 400000; // Default to $400k
-}
 
 module.exports = router;
