@@ -1167,7 +1167,7 @@ export default function Dashboard() {
               >
                 Overview
               </button>
-              <button
+              {/* <button
                 onClick={() => setActiveSection('activity')}
                 className={`pb-4 text-sm font-semibold whitespace-nowrap transition-all duration-200 border-b-2 ${
                   activeSection === 'activity' 
@@ -1176,8 +1176,8 @@ export default function Dashboard() {
                 }`}
               >
                 Recent Activity
-              </button>
-              <button
+              </button> */}
+              {/* <button
                 onClick={() => setActiveSection('analytics')}
                 className={`pb-4 text-sm font-semibold whitespace-nowrap transition-all duration-200 border-b-2 ${
                   activeSection === 'analytics' 
@@ -1186,7 +1186,7 @@ export default function Dashboard() {
                 }`}
               >
                 Analytics
-              </button>
+              </button> */}
               <button
                 onClick={() => setActiveSection('wealth')}
                 className={`pb-4 text-sm font-semibold whitespace-nowrap transition-all duration-200 border-b-2 ${

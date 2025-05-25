@@ -446,6 +446,78 @@ export const deleteWealthEstimation = async (estimationId) => {
  }
 };
 
+export const getPropertyValueDistribution = async () => {
+  try {
+    const response = await api.get('/analytics/property-value-distribution');
+    return response.data;
+  } catch (error) {
+    if (error.response) {
+      throw error.response.data?.message || 'Failed to get property value distribution';
+    }
+    throw 'Failed to get property value distribution';
+  }
+};
+
+export const getPropertyTypes = async () => {
+  try {
+    const response = await api.get('/analytics/property-types');
+    return response.data;
+  } catch (error) {
+    if (error.response) {
+      throw error.response.data?.message || 'Failed to get property types';
+    }
+    throw 'Failed to get property types';
+  }
+};
+
+export const getGeographicDistribution = async () => {
+  try {
+    const response = await api.get('/analytics/geographic-distribution');
+    return response.data;
+  } catch (error) {
+    if (error.response) {
+      throw error.response.data?.message || 'Failed to get geographic distribution';
+    }
+    throw 'Failed to get geographic distribution';
+  }
+};
+
+export const getActivityTrends = async () => {
+  try {
+    const response = await api.get('/analytics/activity-trends');
+    return response.data;
+  } catch (error) {
+    if (error.response) {
+      throw error.response.data?.message || 'Failed to get activity trends';
+    }
+    throw 'Failed to get activity trends';
+  }
+};
+
+export const getWealthAnalytics = async () => {
+  try {
+    const response = await api.get('/analytics/wealth-analytics');
+    return response.data;
+  } catch (error) {
+    if (error.response) {
+      throw error.response.data?.message || 'Failed to get wealth analytics';
+    }
+    throw 'Failed to get wealth analytics';
+  }
+};
+
+export const getSearchPatterns = async () => {
+  try {
+    const response = await api.get('/analytics/search-patterns');
+    return response.data;
+  } catch (error) {
+    if (error.response) {
+      throw error.response.data?.message || 'Failed to get search patterns';
+    }
+    throw 'Failed to get search patterns';
+  }
+};
+
 export const getApiKey = () => {
  return localStorage.getItem('attomApiKey') || process.env.REACT_APP_ATTOM_API_KEY;
 };

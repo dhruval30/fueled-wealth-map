@@ -1,5 +1,6 @@
 import { Navigate, Route, BrowserRouter as Router, Routes } from 'react-router-dom';
 import AcceptInvitation from './pages/AcceptInvitation';
+import Analytics from './pages/Analytics';
 import Dashboard from './pages/Dashboard';
 import LandingPage from './pages/LandingPage';
 import Login from './pages/Login';
@@ -7,6 +8,7 @@ import PropertyMapPage from './pages/PropertyMapPage';
 import RegisterCompany from './pages/RegisterCompany';
 import SavedProperties from './pages/SavedProperties';
 import TeamManagement from './pages/TeamManagement';
+
 
 // Protected Route component
 const ProtectedRoute = ({ children }) => {
@@ -73,10 +75,10 @@ function App() {
           </ProtectedRoute>
         } />
         <Route path="/analytics" element={
-          <ProtectedRoute>
-            <Dashboard />
-          </ProtectedRoute>
-        } />
+  <ProtectedRoute>
+    <Analytics />
+  </ProtectedRoute>
+} />
         <Route path="/saved-properties" element={
           <ProtectedRoute>
             <SavedProperties />
