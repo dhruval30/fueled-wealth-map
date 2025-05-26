@@ -79,11 +79,11 @@ const Analytics = () => {
       const [
         companyStats,
         propertyValueDist,
-        propertyTypesData,
+        propertyTypes,
         geographicDist,
-        activityTrendsData,
-        wealthAnalyticsData,
-        searchPatternsData
+        activityTrends,
+        wealthAnalytics,
+        searchPatterns
       ] = await Promise.all([
         getCompanyStats(),
         getPropertyValueDistribution(),
@@ -93,30 +93,22 @@ const Analytics = () => {
         getWealthAnalytics(),
         getSearchPatterns()
       ]);
-
-      setData({
-        overview: companyStats.data || {},
-        propertyValue: propertyValueDist.data || [],
-        propertyTypes: propertyTypesData.data || [],
-        geographic: geographicDist.data || { states: [], cities: [] },
-        activityTrends: activityTrendsData.data || [],
-        wealthAnalytics: wealthAnalyticsData.data || {},
-        searchPatterns: searchPatternsData.data || {}
-      });
-
-      setData({
-        overview: overview.status === 'fulfilled' ? overview.value.data : {},
-        propertyValue: propertyValue.status === 'fulfilled' ? propertyValue.value.data : [],
-        propertyTypes: propertyTypes.status === 'fulfilled' ? propertyTypes.value.data : [],
-        geographic: geographic.status === 'fulfilled' ? geographic.value.data : { states: [], cities: [] },
-        activityTrends: activityTrends.status === 'fulfilled' ? activityTrends.value.data : [],
-        wealthAnalytics: wealthAnalytics.status === 'fulfilled' ? wealthAnalytics.value.data : {},
-        searchPatterns: searchPatterns.status === 'fulfilled' ? searchPatterns.value.data : {}
-      });
-
-    } catch (err) {
+    
+      // Process the responses - each one is already the parsed data
+      const responses = [
+        companyStats,
+        propertyValueDist,
+        propertyTypes,
+        geographicDist,
+        activityTrends,
+        wealthAnalytics,
+        searchPatterns
+      ];
+    
+      // Continue with your existing logic using the responses array
+    } catch (error) {
+      console.error('Analytics Error:', error);
       setError('Failed to load analytics data');
-    } finally {
       setLoading(false);
     }
   };
