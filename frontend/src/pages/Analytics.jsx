@@ -93,19 +93,35 @@ const Analytics = () => {
         getWealthAnalytics(),
         getSearchPatterns()
       ]);
-    
-      // Process the responses - each one is already the parsed data
-      const responses = [
-        companyStats,
-        propertyValueDist,
-        propertyTypes,
-        geographicDist,
-        activityTrends,
-        wealthAnalytics,
-        searchPatterns
-      ];
-    
-      // Continue with your existing logic using the responses array
+  
+      // Actually set the data to state
+      setData({
+        overview: {
+          totalProperties: companyStats.data?.totalProperties || 0,
+          averageValue: companyStats.data?.averageValue || 0,
+          highValueProperties: companyStats.data?.highValueProperties || 0,
+          newProperties: companyStats.data?.newProperties || 0
+        },
+        propertyValue: propertyValueDist.data || [],
+        propertyTypes: propertyTypes.data || [],
+        geographic: {
+          states: geographicDist.data?.states || [],
+          cities: geographicDist.data?.cities || []
+        },
+        activityTrends: activityTrends.data || [],
+        wealthAnalytics: {
+          totalEstimations: wealthAnalytics.data?.totalEstimations || 0,
+          averageWealth: wealthAnalytics.data?.averageWealth || 0,
+          distribution: wealthAnalytics.data?.distribution || [],
+          confidence: wealthAnalytics.data?.confidence || []
+        },
+        searchPatterns: {
+          searchTypes: searchPatterns.data?.searchTypes || [],
+          hourlyPattern: searchPatterns.data?.hourlyPattern || []
+        }
+      });
+  
+      setLoading(false);
     } catch (error) {
       console.error('Analytics Error:', error);
       setError('Failed to load analytics data');
