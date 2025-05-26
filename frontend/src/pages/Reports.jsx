@@ -118,33 +118,25 @@ import { deleteReport, generateReports, getReportPdf, getReports, getUserSavedPr
           .replace(/\[(.*?)\]\((.*?)\)/g, '<a href="$2" class="text-blue-600 hover:text-blue-800 underline" target="_blank">$1</a>');
       };
   
-    const handleDownloadPDF = async (reportId) => {
-      try {
-        const pdfData = await getReportPdf(reportId);
-        // Handle the PDF data here (probably create download link)
-        const url = window.URL.createObjectURL(new Blob([pdfData]));
-        const link = document.createElement('a');
-        link.href = url;
-        link.setAttribute('download', `report-${reportId}.pdf`);
-        document.body.appendChild(link);
-        link.click();
-        link.remove();
-  
-        if (response.ok) {
-          const blob = await response.blob();
-          const url = window.URL.createObjectURL(blob);
-          const a = document.createElement('a');
-          a.href = url;
-          a.download = `report-${reportId}.pdf`;
-          document.body.appendChild(a);
-          a.click();
+      const handleDownloadPDF = async (reportId) => {
+        try {
+          const pdfData = await getReportPdf(reportId);
+          
+          // Create download link
+          const url = window.URL.createObjectURL(new Blob([pdfData]));
+          const link = document.createElement('a');
+          link.href = url;
+          link.setAttribute('download', `report-${reportId}.pdf`);
+          document.body.appendChild(link);
+          link.click();
+          link.remove();
           window.URL.revokeObjectURL(url);
-          document.body.removeChild(a);
+        } catch (err) {
+          console.error('Error downloading PDF:', err);
+          // Optionally show user-friendly error
+          setError('Failed to download PDF. Please try again.');
         }
-      } catch (err) {
-        console.error('Error downloading PDF:', err);
-      }
-    };
+      };
   
     const togglePropertySelection = (propertyId) => {
       setSelectedProperties(prev => 
