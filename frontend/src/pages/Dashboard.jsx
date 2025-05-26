@@ -524,11 +524,12 @@ export default function Dashboard() {
         getCompanyStats().catch(err => {
           console.warn('Failed to fetch company stats:', err);
           return { data: { topOwners: [] } };
-        }),
+        })
+        // Remove the fourth element since getRecentActivity doesn't exist
       ];
-
-      // Wait for all requests to complete
-      const [searchHistory, savedProperties, companyStats, recentActivity] = await Promise.allSettled(requests);
+      
+      // Wait for all requests to complete - only 3 items now
+      const [searchHistory, savedProperties, companyStats] = await Promise.allSettled(requests);
 
       // Process results and update loading states individually
       setStats(prev => ({
@@ -539,7 +540,7 @@ export default function Dashboard() {
         recentSearches: searchHistory.status === 'fulfilled' ? searchHistory.value.data?.slice(0, 5) || [] : prev.recentSearches,
         savedProperties: savedProperties.status === 'fulfilled' ? savedProperties.value.data?.slice(0, 3) || [] : prev.savedProperties,
         topOwners: companyStats.status === 'fulfilled' ? companyStats.value.data?.topOwners || [] : prev.topOwners,
-        recentActivity: recentActivity.status === 'fulfilled' ? recentActivity.value.data?.slice(0, 5) || [] : prev.recentActivity
+        recentActivity: [] // Set to empty array since endpoint doesn't exist
       }));
 
       // Update individual loading states
@@ -547,11 +548,11 @@ export default function Dashboard() {
         stats: companyStats.status === 'pending',
         searchHistory: searchHistory.status === 'pending',
         savedProperties: savedProperties.status === 'pending',
-        recentActivity: recentActivity.status === 'pending'
+        recentActivity: false // Set to false since endpoint doesn't exist
       });
 
       // Check if any requests failed
-      const failedRequests = [searchHistory, savedProperties, companyStats, recentActivity]
+      const failedRequests = [searchHistory, savedProperties, companyStats]
         .filter(result => result.status === 'rejected').length;
       
       if (failedRequests > 0) {
