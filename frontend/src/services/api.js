@@ -2,9 +2,9 @@ import axios from 'axios';
 
 // Determine the base URL based on environment
 const getBaseURL = () => {
-  // In production, use the environment variable
+  // In production, always use the full backend URL
   if (import.meta.env.PROD) {
-    return import.meta.env.VITE_API_URL || 'https://your-render-backend-url.onrender.com';
+    return import.meta.env.VITE_API_URL || 'https://fueled-wealth-map-dhruval.onrender.com';
   }
   // In development, use the proxy
   return '/api';
@@ -59,12 +59,12 @@ export const registerCompany = async (formData) => {
     }
     console.log('Form data entries:', formDataEntries);
     
-    // Use the full URL for company registration
-    const url = import.meta.env.PROD 
-      ? `${import.meta.env.VITE_API_URL}/api/companies`
-      : '/api/companies';
+    // Always use the full URL for company registration to avoid proxy issues
+    const baseUrl = import.meta.env.PROD 
+      ? (import.meta.env.VITE_API_URL || 'https://fueled-wealth-map-dhruval.onrender.com')
+      : '';
     
-    const response = await axios.post(url, formData);
+    const response = await axios.post(`${baseUrl}/api/companies`, formData);
     
     console.log('Registration successful!');
     return response.data;
@@ -84,11 +84,8 @@ export const registerCompany = async (formData) => {
 // User login
 export const login = async (credentials) => {
   try {
-    const url = import.meta.env.PROD 
-      ? `${import.meta.env.VITE_API_URL}/api/auth/login`
-      : '/api/auth/login';
-      
-    const response = await axios.post(url, credentials, {
+    // Use the API instance which already has the correct base URL
+    const response = await api.post('/api/auth/login', credentials, {
       timeout: 10000
     });
     return response.data;
@@ -112,11 +109,7 @@ export const login = async (credentials) => {
 // Health check
 export const checkApiHealth = async () => {
   try {
-    const url = import.meta.env.PROD 
-      ? `${import.meta.env.VITE_API_URL}/api/health`
-      : '/api/health';
-      
-    const response = await axios.get(url);
+    const response = await api.get('/api/health');
     return response.data;
   } catch (error) {
     console.error('Health check failed:', error);
@@ -127,7 +120,7 @@ export const checkApiHealth = async () => {
 // Get current user
 export const getCurrentUser = async () => {
   try {
-    const response = await api.get('/auth/me');
+    const response = await api.get('/api/auth/me');
     return response.data;
   } catch (error) {
     if (error.response) {
@@ -140,7 +133,7 @@ export const getCurrentUser = async () => {
 // Get company details
 export const getCompanyDetails = async (companyId) => {
   try {
-    const response = await api.get(`/companies/${companyId}`);
+    const response = await api.get(`/api/companies/${companyId}`);
     return response.data;
   } catch (error) {
     if (error.response) {
@@ -153,7 +146,7 @@ export const getCompanyDetails = async (companyId) => {
 // Get company invitations
 export const getInvitations = async () => {
   try {
-    const response = await api.get('/invitations');
+    const response = await api.get('/api/invitations');
     return response.data;
   } catch (error) {
     if (error.response) {
@@ -166,7 +159,7 @@ export const getInvitations = async () => {
 // Invite employee
 export const inviteEmployee = async (employeeData) => {
   try {
-    const response = await api.post('/invitations', employeeData);
+    const response = await api.post('/api/invitations', employeeData);
     return response.data;
   } catch (error) {
     if (error.response) {
@@ -179,7 +172,7 @@ export const inviteEmployee = async (employeeData) => {
 // Cancel invitation
 export const cancelInvitation = async (invitationId) => {
   try {
-    const response = await api.delete(`/invitations/${invitationId}`);
+    const response = await api.delete(`/api/invitations/${invitationId}`);
     return response.data;
   } catch (error) {
     if (error.response) {
@@ -191,7 +184,7 @@ export const cancelInvitation = async (invitationId) => {
 
 export const validateToken = async () => {
   try {
-    const response = await api.get('/auth/validate-token');
+    const response = await api.get('/api/auth/validate-token');
     return response.data.valid;
   } catch (error) {
     localStorage.removeItem('authToken');
@@ -202,7 +195,7 @@ export const validateToken = async () => {
 export const getAllUsers = async () => {
   try {
     console.log("Fetching all users...");
-    const response = await api.get('/users');
+    const response = await api.get('/api/users');
     console.log("Users API response:", response);
     return response.data;
   } catch (error) {
@@ -217,7 +210,7 @@ export const getAllUsers = async () => {
 export const getCompanyTeam = async () => {
   try {
     console.log("Fetching company team...");
-    const response = await api.get('/invitations/company-team');
+    const response = await api.get('/api/invitations/company-team');
     console.log("Company team response:", response);
     return response.data;
   } catch (error) {
@@ -231,7 +224,7 @@ export const getCompanyTeam = async () => {
 
 export const getUserSearchHistory = async () => {
   try {
-    const response = await api.get('/user/search-history');
+    const response = await api.get('/api/user/search-history');
     return response.data;
   } catch (error) {
     if (error.response) {
@@ -243,7 +236,7 @@ export const getUserSearchHistory = async () => {
 
 export const getUserSavedProperties = async () => {
   try {
-    const response = await api.get('/user/saved-properties');
+    const response = await api.get('/api/user/saved-properties');
     return response.data;
   } catch (error) {
     if (error.response) {
@@ -255,7 +248,7 @@ export const getUserSavedProperties = async () => {
 
 export const getCompanyStats = async () => {
   try {
-    const response = await api.get('/analytics/company-stats');
+    const response = await api.get('/api/analytics/company-stats');
     return response.data;
   } catch (error) {
     if (error.response) {
@@ -268,7 +261,7 @@ export const getCompanyStats = async () => {
 export const saveUserSearch = async (searchData) => {
   try {
     console.log('Saving search data:', searchData);
-    const response = await api.post('/user/search-history', searchData);
+    const response = await api.post('/api/user/search-history', searchData);
     console.log('Search saved successfully:', response.data);
     return response.data;
   } catch (error) {
@@ -285,7 +278,7 @@ export const saveUserSearch = async (searchData) => {
 
 export const saveProperty = async (propertyData) => {
   try {
-    const response = await api.post('/user/saved-properties', propertyData);
+    const response = await api.post('/api/user/saved-properties', propertyData);
     return response.data;
   } catch (error) {
     if (error.response) {
@@ -297,7 +290,7 @@ export const saveProperty = async (propertyData) => {
 
 export const getRecentActivity = async () => {
   try {
-    const response = await api.get('/analytics/recent-activity');
+    const response = await api.get('/api/analytics/recent-activity');
     return response.data;
   } catch (error) {
     if (error.response) {
@@ -309,7 +302,7 @@ export const getRecentActivity = async () => {
 
 export const searchProperties = async (searchParams) => {
   try {
-    const response = await api.post('/properties/search', searchParams);
+    const response = await api.post('/api/properties/search', searchParams);
     return response.data;
   } catch (error) {
     if (error.response) {
@@ -321,7 +314,7 @@ export const searchProperties = async (searchParams) => {
 
 export const advancedPropertySearch = async (filters) => {
   try {
-    const response = await api.post('/properties/advanced-search', filters);
+    const response = await api.post('/api/properties/advanced-search', filters);
     return response.data;
   } catch (error) {
     if (error.response) {
@@ -333,7 +326,7 @@ export const advancedPropertySearch = async (filters) => {
 
 export const getPropertyById = async (propertyId) => {
   try {
-    const savedPropertiesResponse = await api.get('/user/saved-properties');
+    const savedPropertiesResponse = await api.get('/api/user/saved-properties');
     const savedProperties = savedPropertiesResponse.data?.data || [];
     
     const savedProperty = savedProperties.find(p => 
@@ -345,7 +338,7 @@ export const getPropertyById = async (propertyId) => {
       return savedProperty.propertyData;
     }
     
-    const response = await api.get(`/properties/${propertyId}`);
+    const response = await api.get(`/api/properties/${propertyId}`);
     return response.data.data;
  } catch (error) {
    console.error('Error fetching property:', error);
@@ -358,7 +351,7 @@ export const getPropertyById = async (propertyId) => {
 
 export const exportAnalytics = async (exportParams) => {
  try {
-   const response = await api.post('/analytics/export', exportParams, {
+   const response = await api.post('/api/analytics/export', exportParams, {
      responseType: 'blob'
    });
    
@@ -392,18 +385,14 @@ export const saveApiKey = async (apiKey) => {
 export const getPropertyImageUrl = (propertyId) => {
  if (!propertyId) return null;
  const baseUrl = import.meta.env.PROD 
-   ? import.meta.env.VITE_API_URL 
+   ? (import.meta.env.VITE_API_URL || 'https://your-render-backend-url.onrender.com')
    : '';
  return `${baseUrl}/api/images/streetview/streetview_${propertyId}.png`;
 };
 
 export const checkStreetViewStatus = async (propertyId) => {
  try {
-   const url = import.meta.env.PROD 
-     ? `${import.meta.env.VITE_API_URL}/api/images/streetview-status/${propertyId}`
-     : `/api/images/streetview-status/${propertyId}`;
-     
-   const response = await axios.get(url);
+   const response = await api.get(`/api/images/streetview-status/${propertyId}`);
    return response.data;
  } catch (error) {
    console.error('Error checking street view status:', error);
@@ -413,7 +402,7 @@ export const checkStreetViewStatus = async (propertyId) => {
 
 export const requestStreetViewCapture = async (address, propertyId) => {
  try {
-   const response = await api.post('/images/capture-streetview', {
+   const response = await api.post('/api/images/capture-streetview', {
      address,
      propertyId
    });
@@ -429,7 +418,7 @@ export const requestStreetViewCapture = async (address, propertyId) => {
 
 export const getWealthEstimations = async () => {
  try {
-   const response = await api.get('/wealth/estimations');
+   const response = await api.get('/api/wealth/estimations');
    return response.data;
  } catch (error) {
    if (error.response) {
@@ -441,7 +430,7 @@ export const getWealthEstimations = async () => {
 
 export const runWealthEstimations = async () => {
  try {
-   const response = await api.post('/wealth/estimate');
+   const response = await api.post('/api/wealth/estimate');
    return response.data;
  } catch (error) {
    if (error.response) {
@@ -453,7 +442,7 @@ export const runWealthEstimations = async () => {
 
 export const getWealthEstimationExplanation = async (estimationId) => {
  try {
-   const response = await api.get(`/wealth/estimations/${estimationId}/explanation`);
+   const response = await api.get(`/api/wealth/estimations/${estimationId}/explanation`);
    return response.data;
  } catch (error) {
    if (error.response) {
@@ -465,7 +454,7 @@ export const getWealthEstimationExplanation = async (estimationId) => {
 
 export const deleteWealthEstimation = async (estimationId) => {
  try {
-   const response = await api.delete(`/wealth/estimations/${estimationId}`);
+   const response = await api.delete(`/api/wealth/estimations/${estimationId}`);
    return response.data;
  } catch (error) {
    if (error.response) {
@@ -477,7 +466,7 @@ export const deleteWealthEstimation = async (estimationId) => {
 
 export const getPropertyValueDistribution = async () => {
   try {
-    const response = await api.get('/analytics/property-value-distribution');
+    const response = await api.get('/api/analytics/property-value-distribution');
     return response.data;
   } catch (error) {
     if (error.response) {
@@ -489,7 +478,7 @@ export const getPropertyValueDistribution = async () => {
 
 export const getPropertyTypes = async () => {
   try {
-    const response = await api.get('/analytics/property-types');
+    const response = await api.get('/api/analytics/property-types');
     return response.data;
   } catch (error) {
     if (error.response) {
@@ -501,7 +490,7 @@ export const getPropertyTypes = async () => {
 
 export const getGeographicDistribution = async () => {
   try {
-    const response = await api.get('/analytics/geographic-distribution');
+    const response = await api.get('/api/analytics/geographic-distribution');
     return response.data;
   } catch (error) {
     if (error.response) {
@@ -513,7 +502,7 @@ export const getGeographicDistribution = async () => {
 
 export const getActivityTrends = async () => {
   try {
-    const response = await api.get('/analytics/activity-trends');
+    const response = await api.get('/api/analytics/activity-trends');
     return response.data;
   } catch (error) {
     if (error.response) {
@@ -525,7 +514,7 @@ export const getActivityTrends = async () => {
 
 export const getWealthAnalytics = async () => {
   try {
-    const response = await api.get('/analytics/wealth-analytics');
+    const response = await api.get('/api/analytics/wealth-analytics');
     return response.data;
   } catch (error) {
     if (error.response) {
@@ -537,7 +526,7 @@ export const getWealthAnalytics = async () => {
 
 export const getSearchPatterns = async () => {
   try {
-    const response = await api.get('/analytics/search-patterns');
+    const response = await api.get('/api/analytics/search-patterns');
     return response.data;
   } catch (error) {
     if (error.response) {
@@ -549,7 +538,7 @@ export const getSearchPatterns = async () => {
 
 export const getReports = async () => {
   try {
-    const response = await api.get('/reports');
+    const response = await api.get('/api/reports');
     return response.data;
   } catch (error) {
     if (error.response) {
@@ -561,7 +550,7 @@ export const getReports = async () => {
 
 export const generateReports = async (propertyIds, reportType) => {
   try {
-    const response = await api.post('/reports/generate', {
+    const response = await api.post('/api/reports/generate', {
       propertyIds,
       reportType
     });
@@ -576,7 +565,7 @@ export const generateReports = async (propertyIds, reportType) => {
 
 export const deleteReport = async (reportId) => {
   try {
-    const response = await api.delete(`/reports/${reportId}`);
+    const response = await api.delete(`/api/reports/${reportId}`);
     return response.data;
   } catch (error) {
     if (error.response) {
