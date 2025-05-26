@@ -6,9 +6,9 @@ import LandingPage from './pages/LandingPage';
 import Login from './pages/Login';
 import PropertyMapPage from './pages/PropertyMapPage';
 import RegisterCompany from './pages/RegisterCompany';
+import Reports from './pages/Reports';
 import SavedProperties from './pages/SavedProperties';
 import TeamManagement from './pages/TeamManagement';
-
 
 // Protected Route component
 const ProtectedRoute = ({ children }) => {
@@ -84,6 +84,11 @@ function App() {
             <SavedProperties />
           </ProtectedRoute>
         } />
+        <Route path="/reports" element={
+  <ProtectedRoute>
+    <Reports />
+  </ProtectedRoute>
+} />
         <Route path="/settings" element={
           <ProtectedRoute>
             <Dashboard />

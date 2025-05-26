@@ -10,6 +10,7 @@ import {
   Clock,
   Coins,
   DollarSign,
+  FileText,
   Globe,
   Home,
   Loader2,
@@ -1058,6 +1059,13 @@ export default function Dashboard() {
                  isActive={false}
                  onNavigate={handleSidebarClose}
                />
+               <NavLink 
+  icon={FileText} 
+  label="Smart Reports" 
+  to="/reports" 
+  isActive={false}
+  onNavigate={handleSidebarClose}
+/>
                {isAdmin && (
                  <NavLink 
                    icon={Users} 

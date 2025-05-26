@@ -518,6 +518,45 @@ export const getSearchPatterns = async () => {
   }
 };
 
+export const getReports = async () => {
+  try {
+    const response = await api.get('/reports');
+    return response.data;
+  } catch (error) {
+    if (error.response) {
+      throw error.response.data?.message || 'Failed to get reports';
+    }
+    throw 'Failed to get reports.';
+  }
+};
+
+export const generateReports = async (propertyIds, reportType) => {
+  try {
+    const response = await api.post('/reports/generate', {
+      propertyIds,
+      reportType
+    });
+    return response.data;
+  } catch (error) {
+    if (error.response) {
+      throw error.response.data?.message || 'Failed to generate reports';
+    }
+    throw 'Failed to generate reports.';
+  }
+};
+
+export const deleteReport = async (reportId) => {
+  try {
+    const response = await api.delete(`/reports/${reportId}`);
+    return response.data;
+  } catch (error) {
+    if (error.response) {
+      throw error.response.data?.message || 'Failed to delete report';
+    }
+    throw 'Failed to delete report.';
+  }
+};
+
 export const getApiKey = () => {
  return localStorage.getItem('attomApiKey') || process.env.REACT_APP_ATTOM_API_KEY;
 };
