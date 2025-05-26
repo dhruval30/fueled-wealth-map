@@ -1,8 +1,18 @@
 import axios from 'axios';
 
+// Determine the base URL based on environment
+const getBaseURL = () => {
+  // In production, use the environment variable
+  if (import.meta.env.PROD) {
+    return import.meta.env.VITE_API_URL || 'https://your-render-backend-url.onrender.com';
+  }
+  // In development, use the proxy
+  return '/api';
+};
+
 // Create an axios instance with default config
 const api = axios.create({
-  baseURL: '/api',
+  baseURL: getBaseURL(),
   timeout: 30000,
   headers: {
     'Content-Type': 'application/json'
@@ -49,7 +59,12 @@ export const registerCompany = async (formData) => {
     }
     console.log('Form data entries:', formDataEntries);
     
-    const response = await axios.post('/api/companies', formData);
+    // Use the full URL for company registration
+    const url = import.meta.env.PROD 
+      ? `${import.meta.env.VITE_API_URL}/api/companies`
+      : '/api/companies';
+    
+    const response = await axios.post(url, formData);
     
     console.log('Registration successful!');
     return response.data;
@@ -69,7 +84,11 @@ export const registerCompany = async (formData) => {
 // User login
 export const login = async (credentials) => {
   try {
-    const response = await axios.post('/api/auth/login', credentials, {
+    const url = import.meta.env.PROD 
+      ? `${import.meta.env.VITE_API_URL}/api/auth/login`
+      : '/api/auth/login';
+      
+    const response = await axios.post(url, credentials, {
       timeout: 10000
     });
     return response.data;
@@ -87,6 +106,21 @@ export const login = async (credentials) => {
     } else {
       throw 'Login failed. Please try again.';
     }
+  }
+};
+
+// Health check
+export const checkApiHealth = async () => {
+  try {
+    const url = import.meta.env.PROD 
+      ? `${import.meta.env.VITE_API_URL}/api/health`
+      : '/api/health';
+      
+    const response = await axios.get(url);
+    return response.data;
+  } catch (error) {
+    console.error('Health check failed:', error);
+    throw 'API health check failed.';
   }
 };
 
@@ -152,17 +186,6 @@ export const cancelInvitation = async (invitationId) => {
       throw error.response.data?.message || 'Failed to cancel invitation';
     }
     throw 'Failed to cancel invitation.';
-  }
-};
-
-// Health check
-export const checkApiHealth = async () => {
-  try {
-    const response = await axios.get('/api/health');
-    return response.data;
-  } catch (error) {
-    console.error('Health check failed:', error);
-    throw 'API health check failed.';
   }
 };
 
@@ -368,12 +391,19 @@ export const saveApiKey = async (apiKey) => {
 
 export const getPropertyImageUrl = (propertyId) => {
  if (!propertyId) return null;
- return `/api/images/streetview/streetview_${propertyId}.png`;
+ const baseUrl = import.meta.env.PROD 
+   ? import.meta.env.VITE_API_URL 
+   : '';
+ return `${baseUrl}/api/images/streetview/streetview_${propertyId}.png`;
 };
 
 export const checkStreetViewStatus = async (propertyId) => {
  try {
-   const response = await axios.get(`/api/images/streetview-status/${propertyId}`);
+   const url = import.meta.env.PROD 
+     ? `${import.meta.env.VITE_API_URL}/api/images/streetview-status/${propertyId}`
+     : `/api/images/streetview-status/${propertyId}`;
+     
+   const response = await axios.get(url);
    return response.data;
  } catch (error) {
    console.error('Error checking street view status:', error);
@@ -383,7 +413,7 @@ export const checkStreetViewStatus = async (propertyId) => {
 
 export const requestStreetViewCapture = async (address, propertyId) => {
  try {
-   const response = await api.post('/api/images/capture-streetview', {
+   const response = await api.post('/images/capture-streetview', {
      address,
      propertyId
    });
@@ -421,7 +451,6 @@ export const runWealthEstimations = async () => {
  }
 };
 
-// NEW: Get explanation for wealth estimation
 export const getWealthEstimationExplanation = async (estimationId) => {
  try {
    const response = await api.get(`/wealth/estimations/${estimationId}/explanation`);
@@ -558,7 +587,7 @@ export const deleteReport = async (reportId) => {
 };
 
 export const getApiKey = () => {
- return localStorage.getItem('attomApiKey') || process.env.REACT_APP_ATTOM_API_KEY;
+ return localStorage.getItem('attomApiKey') || import.meta.env.VITE_ATTOM_API_KEY;
 };
 
 export default api;
