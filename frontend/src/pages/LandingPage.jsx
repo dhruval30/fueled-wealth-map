@@ -136,7 +136,7 @@ export default function LandingPage() {
                     className="w-full h-full object-cover"
                     poster="/preview.jpg" // Optional: remove if you don't have one
                   >
-                    <source src="/record.mov" type="video/mp4" />
+                    <source src="/record.MP4" type="video/mp4" />
                     Your browser does not support the video tag.
                   </video>
                 </div>  
