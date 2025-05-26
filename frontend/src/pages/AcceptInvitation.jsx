@@ -1,7 +1,7 @@
-import axios from 'axios';
 import { AlertCircle, Eye, EyeOff, Globe, Lock } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
+import api from '../services/api';
 
 export default function AcceptInvitation() {
   const { token } = useParams();
@@ -20,7 +20,7 @@ export default function AcceptInvitation() {
     const fetchInvitationData = async () => {
       try {
         console.log("Validating invitation token:", token);
-        const response = await axios.get(`/api/invitations/validate/${token}`);
+        const response = await api.get(`/invitations/validate/${token}`);
         console.log("Invitation validation response:", response.data);
         setInvitationData(response.data);
       } catch (error) {
@@ -57,7 +57,7 @@ export default function AcceptInvitation() {
     
     try {
       console.log("Submitting invitation acceptance for token:", token);
-      const response = await axios.post('/api/auth/accept-invitation', {
+      const response = await api.post('/auth/accept-invitation', {
         token,
         password
       });

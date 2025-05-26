@@ -38,10 +38,11 @@ import {
   getRecentActivity,
   getUserSavedProperties,
   getUserSearchHistory,
+  getWealthEstimations,
+  runWealthEstimations,
   saveProperty,
   saveUserSearch
 } from '../services/api';
-
 // Lazy load heavy components
 const PropertyDetails = lazy(() => import('./PropertyDetails'));
 
@@ -153,12 +154,7 @@ const WealthEstimationSection = () => {
   const fetchEstimations = useCallback(async () => {
     try {
       setLoading(true);
-      const response = await fetch('/api/wealth/estimations', {
-        headers: {
-          'Authorization': `Bearer ${localStorage.getItem('authToken')}`
-        }
-      });
-      const data = await response.json();
+      const data = await getWealthEstimations();
       
       if (data.success) {
         setEstimations(data.data);
@@ -183,15 +179,7 @@ const WealthEstimationSection = () => {
       setEstimating(true);
       setError(null);
       
-      const response = await fetch('/api/wealth/estimate', {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${localStorage.getItem('authToken')}`,
-          'Content-Type': 'application/json'
-        }
-      });
-      
-      const data = await response.json();
+      const data = await runWealthEstimations();
       
       if (data.success) {
         setSummary(data.summary);

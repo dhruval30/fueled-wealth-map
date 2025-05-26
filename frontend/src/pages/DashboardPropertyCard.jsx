@@ -1,6 +1,7 @@
 import { Building, Loader2, MapPin } from 'lucide-react';
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
+import { getPropertyImageUrl } from '../services/api';
 
 /**
  * Dashboard Property Card component
@@ -16,7 +17,7 @@ const DashboardPropertyCard = ({ property, compact = false }) => {
   const propertyType = getPropertyType(property);
   
   // Get image URL for the property
-  const imageUrl = propertyId ? `/api/images/streetview/streetview_${propertyId}.png` : null;
+  const imageUrl = propertyId ? getPropertyImageUrl(propertyId) : null;
   
   // Handle image load events
   const handleImageLoad = () => {

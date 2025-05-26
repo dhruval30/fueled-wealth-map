@@ -19,6 +19,7 @@ import {
   User
 } from 'lucide-react';
 import React, { useEffect, useState } from 'react';
+import { checkStreetViewStatus, requestStreetViewCapture } from '../services/api';
 
 const PropertyDetails = ({ property }) => {
   const [streetViewStatus, setStreetViewStatus] = useState('checking');
@@ -47,7 +48,7 @@ const PropertyDetails = ({ property }) => {
     if (propertyId) {
       const checkStatus = async () => {
         try {
-          const response = await fetch(`/api/images/streetview-status/${propertyId}`);
+          const response = await checkStreetViewStatus(propertyId);
           if (!response.ok) {
             setStreetViewStatus('error');
             return true;
@@ -155,7 +156,7 @@ const PropertyDetails = ({ property }) => {
     );
   };
 
-  const handleRetry = () => {
+  const handleRetry = async () => {
     setIsRetrying(true);
     setStreetViewStatus('checking');
     setCheckAttempts(0);
@@ -164,31 +165,20 @@ const PropertyDetails = ({ property }) => {
     const address = property.fullAddress || getPropertyAddress(property);
     
     if (propertyId && address) {
-      fetch('/api/images/capture-streetview', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({ 
-          address, 
-          propertyId 
-        })
-      })
-        .then(response => response.json())
-        .then(data => {
-          if (data.success) {
-            setStreetViewUrl(data.url);
-            setStreetViewStatus('loaded');
-          } else {
-            setStreetViewStatus('error');
-          }
-          setIsRetrying(false);
-        })
-        .catch(error => {
-          console.error('Error triggering manual capture:', error);
+      try {
+        const data = await requestStreetViewCapture(address, propertyId);
+        if (data.success) {
+          setStreetViewUrl(data.url);
+          setStreetViewStatus('loaded');
+        } else {
           setStreetViewStatus('error');
-          setIsRetrying(false);
-        });
+        }
+        setIsRetrying(false);
+      } catch (error) {
+        console.error('Error triggering manual capture:', error);
+        setStreetViewStatus('error');
+        setIsRetrying(false);
+      }
     }
   };
 

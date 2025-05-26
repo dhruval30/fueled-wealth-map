@@ -118,7 +118,7 @@ const getPropertyImageUrl = (property) => {
   const attomId = property.attomId || property.propertyData?.identifier?.attomId;
   
   if (attomId) {
-    return `/api/images/streetview/streetview_${attomId}.png`;
+    return getPropertyImageUrl(attomId);
   }
   
   return null;

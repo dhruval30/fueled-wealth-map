@@ -33,6 +33,15 @@ import {
   XAxis,
   YAxis
 } from 'recharts';
+import {
+  getActivityTrends,
+  getCompanyStats,
+  getGeographicDistribution,
+  getPropertyTypes,
+  getPropertyValueDistribution,
+  getSearchPatterns,
+  getWealthAnalytics
+} from '../services/api';
 
 const Analytics = () => {
   const navigate = useNavigate();
@@ -67,26 +76,33 @@ const Analytics = () => {
     setError(null);
     
     try {
-      const token = localStorage.getItem('authToken');
-      const headers = { 'Authorization': `Bearer ${token}` };
+      const [
+        companyStats,
+        propertyValueDist,
+        propertyTypesData,
+        geographicDist,
+        activityTrendsData,
+        wealthAnalyticsData,
+        searchPatternsData
+      ] = await Promise.all([
+        getCompanyStats(),
+        getPropertyValueDistribution(),
+        getPropertyTypes(),
+        getGeographicDistribution(),
+        getActivityTrends(),
+        getWealthAnalytics(),
+        getSearchPatterns()
+      ]);
 
-      const endpoints = [
-        'company-stats',
-        'property-value-distribution', 
-        'property-types',
-        'geographic-distribution',
-        'activity-trends',
-        'wealth-analytics',
-        'search-patterns'
-      ];
-
-      const responses = await Promise.allSettled(
-        endpoints.map(endpoint => 
-          fetch(`/api/analytics/${endpoint}`, { headers }).then(r => r.json())
-        )
-      );
-
-      const [overview, propertyValue, propertyTypes, geographic, activityTrends, wealthAnalytics, searchPatterns] = responses;
+      setData({
+        overview: companyStats.data || {},
+        propertyValue: propertyValueDist.data || [],
+        propertyTypes: propertyTypesData.data || [],
+        geographic: geographicDist.data || { states: [], cities: [] },
+        activityTrends: activityTrendsData.data || [],
+        wealthAnalytics: wealthAnalyticsData.data || {},
+        searchPatterns: searchPatternsData.data || {}
+      });
 
       setData({
         overview: overview.status === 'fulfilled' ? overview.value.data : {},

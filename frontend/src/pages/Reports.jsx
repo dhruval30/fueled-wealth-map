@@ -1,20 +1,21 @@
 import {
-    AlertCircle,
-    ArrowLeft,
-    Bot,
-    Calendar,
-    Download,
-    Eye,
-    FileText,
-    Loader2,
-    Plus,
-    Search,
-    Trash2,
-    X,
-    Zap
+  AlertCircle,
+  ArrowLeft,
+  Bot,
+  Calendar,
+  Download,
+  Eye,
+  FileText,
+  Loader2,
+  Plus,
+  Search,
+  Trash2,
+  X,
+  Zap
 } from 'lucide-react';
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { deleteReport, generateReports, getReports, getUserSavedProperties } from '../services/api';
   
   const Reports = () => {
     const navigate = useNavigate();
@@ -47,8 +48,8 @@ import { useNavigate } from 'react-router-dom';
         const headers = { 'Authorization': `Bearer ${token}` };
   
         const [reportsResponse, propertiesResponse] = await Promise.all([
-          fetch('/api/reports', { headers }),
-          fetch('/api/user/saved-properties', { headers })
+          getReports(),
+          getUserSavedProperties()
         ]);
   
         const reportsData = await reportsResponse.json();
@@ -80,17 +81,7 @@ import { useNavigate } from 'react-router-dom';
         setError(null);
         
         const token = localStorage.getItem('authToken');
-        const response = await fetch('/api/reports/generate', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${token}`
-          },
-          body: JSON.stringify({
-            propertyIds: selectedProperties,
-            reportType
-          })
-        });
+        const response = await generateReports(propertyIds, reportType);
   
         const data = await response.json();
   
@@ -114,10 +105,7 @@ import { useNavigate } from 'react-router-dom';
   
       try {
         const token = localStorage.getItem('authToken');
-        const response = await fetch(`/api/reports/${reportId}`, {
-          method: 'DELETE',
-          headers: { 'Authorization': `Bearer ${token}` }
-        });
+        const response = await deleteReport(reportId);
   
         if (response.ok) {
           setReports(prev => prev.filter(r => r._id !== reportId));
