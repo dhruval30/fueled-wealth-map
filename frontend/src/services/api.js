@@ -32,7 +32,7 @@ api.interceptors.response.use(
   }
 );
 
-// Company registration - special handling for FormData
+// Company registration - USE API INSTANCE
 export const registerCompany = async (formData) => {
   try {
     console.log('Submitting registration form data...');
@@ -49,7 +49,8 @@ export const registerCompany = async (formData) => {
     }
     console.log('Form data entries:', formDataEntries);
     
-    const response = await axios.post('/api/companies', formData);
+    // ✅ Use api instance instead of axios directly
+    const response = await api.post('/companies', formData);
     
     console.log('Registration successful!');
     return response.data;
@@ -66,10 +67,11 @@ export const registerCompany = async (formData) => {
   }
 };
 
-// User login
+// User login - USE API INSTANCE
 export const login = async (credentials) => {
   try {
-    const response = await axios.post('/api/auth/login', credentials, {
+    // ✅ Use api instance instead of axios directly
+    const response = await api.post('/auth/login', credentials, {
       timeout: 10000
     });
     return response.data;
@@ -87,6 +89,47 @@ export const login = async (credentials) => {
     } else {
       throw 'Login failed. Please try again.';
     }
+  }
+};
+
+// Health check - USE API INSTANCE
+export const checkApiHealth = async () => {
+  try {
+    // ✅ Use api instance instead of axios directly
+    const response = await api.get('/health');
+    return response.data;
+  } catch (error) {
+    console.error('Health check failed:', error);
+    throw 'API health check failed.';
+  }
+};
+
+// Street view functions - USE API INSTANCE
+export const checkStreetViewStatus = async (propertyId) => {
+  try {
+    // ✅ Use api instance instead of axios directly
+    const response = await api.get(`/images/streetview-status/${propertyId}`);
+    return response.data;
+  } catch (error) {
+    console.error('Error checking street view status:', error);
+    return { status: 'error', error: error.message };
+  }
+};
+
+export const requestStreetViewCapture = async (address, propertyId) => {
+  try {
+    // ✅ Remove duplicate /api from path
+    const response = await api.post('/images/capture-streetview', {
+      address,
+      propertyId
+    });
+    return response.data;
+  } catch (error) {
+    console.error('Error requesting street view capture:', error);
+    if (error.response) {
+      throw error.response.data?.message || 'Failed to capture street view';
+    }
+    throw 'Failed to capture street view';
   }
 };
 
@@ -152,17 +195,6 @@ export const cancelInvitation = async (invitationId) => {
       throw error.response.data?.message || 'Failed to cancel invitation';
     }
     throw 'Failed to cancel invitation.';
-  }
-};
-
-// Health check
-export const checkApiHealth = async () => {
-  try {
-    const response = await axios.get('/api/health');
-    return response.data;
-  } catch (error) {
-    console.error('Health check failed:', error);
-    throw 'API health check failed.';
   }
 };
 
@@ -324,126 +356,100 @@ export const getPropertyById = async (propertyId) => {
     
     const response = await api.get(`/properties/${propertyId}`);
     return response.data.data;
- } catch (error) {
-   console.error('Error fetching property:', error);
-   if (error.response) {
-     throw error.response.data?.message || 'Failed to get property details';
-   }
-   throw 'Failed to get property details.';
- }
+  } catch (error) {
+    console.error('Error fetching property:', error);
+    if (error.response) {
+      throw error.response.data?.message || 'Failed to get property details';
+    }
+    throw 'Failed to get property details.';
+  }
 };
 
 export const exportAnalytics = async (exportParams) => {
- try {
-   const response = await api.post('/analytics/export', exportParams, {
-     responseType: 'blob'
-   });
-   
-   const url = window.URL.createObjectURL(new Blob([response.data]));
-   const link = document.createElement('a');
-   link.href = url;
-   link.setAttribute('download', `analytics-${Date.now()}.xlsx`);
-   document.body.appendChild(link);
-   link.click();
-   link.remove();
-   
-   return true;
- } catch (error) {
-   if (error.response) {
-     throw error.response.data?.message || 'Failed to export analytics';
-   }
-   throw 'Failed to export analytics.';
- }
+  try {
+    const response = await api.post('/analytics/export', exportParams, {
+      responseType: 'blob'
+    });
+    
+    const url = window.URL.createObjectURL(new Blob([response.data]));
+    const link = document.createElement('a');
+    link.href = url;
+    link.setAttribute('download', `analytics-${Date.now()}.xlsx`);
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+    
+    return true;
+  } catch (error) {
+    if (error.response) {
+      throw error.response.data?.message || 'Failed to export analytics';
+    }
+    throw 'Failed to export analytics.';
+  }
 };
 
 export const saveApiKey = async (apiKey) => {
- try {
-   localStorage.setItem('attomApiKey', apiKey);
-   return { success: true };
- } catch (error) {
-   console.error('Error saving API key:', error);
-   throw 'Failed to save API key.';
- }
+  try {
+    localStorage.setItem('attomApiKey', apiKey);
+    return { success: true };
+  } catch (error) {
+    console.error('Error saving API key:', error);
+    throw 'Failed to save API key.';
+  }
 };
 
 export const getPropertyImageUrl = (propertyId) => {
- if (!propertyId) return null;
- return `/api/images/streetview/streetview_${propertyId}.png`;
-};
-
-export const checkStreetViewStatus = async (propertyId) => {
- try {
-   const response = await axios.get(`/api/images/streetview-status/${propertyId}`);
-   return response.data;
- } catch (error) {
-   console.error('Error checking street view status:', error);
-   return { status: 'error', error: error.message };
- }
-};
-
-export const requestStreetViewCapture = async (address, propertyId) => {
- try {
-   const response = await api.post('/api/images/capture-streetview', {
-     address,
-     propertyId
-   });
-   return response.data;
- } catch (error) {
-   console.error('Error requesting street view capture:', error);
-   if (error.response) {
-     throw error.response.data?.message || 'Failed to capture street view';
-   }
-   throw 'Failed to capture street view';
- }
+  if (!propertyId) return null;
+  // ✅ Use full URL for production
+  return `https://fueled-wealth-map-dhruval.onrender.com/api/images/streetview/streetview_${propertyId}.png`;
 };
 
 export const getWealthEstimations = async () => {
- try {
-   const response = await api.get('/wealth/estimations');
-   return response.data;
- } catch (error) {
-   if (error.response) {
-     throw error.response.data?.message || 'Failed to get wealth estimations';
-   }
-   throw 'Failed to get wealth estimations.';
- }
+  try {
+    const response = await api.get('/wealth/estimations');
+    return response.data;
+  } catch (error) {
+    if (error.response) {
+      throw error.response.data?.message || 'Failed to get wealth estimations';
+    }
+    throw 'Failed to get wealth estimations.';
+  }
 };
 
 export const runWealthEstimations = async () => {
- try {
-   const response = await api.post('/wealth/estimate');
-   return response.data;
- } catch (error) {
-   if (error.response) {
-     throw error.response.data?.message || 'Failed to run wealth estimations';
-   }
-   throw 'Failed to run wealth estimations.';
- }
+  try {
+    const response = await api.post('/wealth/estimate');
+    return response.data;
+  } catch (error) {
+    if (error.response) {
+      throw error.response.data?.message || 'Failed to run wealth estimations';
+    }
+    throw 'Failed to run wealth estimations.';
+  }
 };
 
-// NEW: Get explanation for wealth estimation
 export const getWealthEstimationExplanation = async (estimationId) => {
- try {
-   const response = await api.get(`/wealth/estimations/${estimationId}/explanation`);
-   return response.data;
- } catch (error) {
-   if (error.response) {
-     throw error.response.data?.message || 'Failed to get estimation explanation';
-   }
-   throw 'Failed to get estimation explanation.';
- }
+  try {
+    const response = await api.get(`/wealth/estimations/${estimationId}/explanation`);
+    return response.data;
+  } catch (error) {
+    if (error.response) {
+      throw error.response.data?.message || 'Failed to get estimation explanation';
+    }
+    throw 'Failed to get estimation explanation.';
+  }
 };
 
 export const deleteWealthEstimation = async (estimationId) => {
- try {
-   const response = await api.delete(`/wealth/estimations/${estimationId}`);
-   return response.data;
- } catch (error) {
-   if (error.response) {
-     throw error.response.data?.message || 'Failed to delete wealth estimation';
-   }
-   throw 'Failed to delete wealth estimation.';
- }
+  try {
+    const response = await api.delete(`/wealth/estimations/${estimationId}`);
+    return response.data;
+  } catch (error) {
+    if (error.response) {
+      throw error.response.data?.message || 'Failed to delete wealth estimation';
+    }
+    throw 'Failed to delete wealth estimation.';
+  }
 };
 
 export const getPropertyValueDistribution = async () => {
@@ -558,7 +564,7 @@ export const deleteReport = async (reportId) => {
 };
 
 export const getApiKey = () => {
- return localStorage.getItem('attomApiKey') || process.env.REACT_APP_ATTOM_API_KEY;
+  return localStorage.getItem('attomApiKey') || process.env.REACT_APP_ATTOM_API_KEY;
 };
 
 export default api;
