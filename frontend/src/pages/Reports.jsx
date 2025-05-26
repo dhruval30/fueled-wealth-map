@@ -15,8 +15,7 @@ import {
 } from 'lucide-react';
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { deleteReport, generateReports, getReports, getUserSavedProperties } from '../services/api';
-  
+import { deleteReport, generateReports, getReportPdf, getReports, getUserSavedProperties } from '../services/api';
   const Reports = () => {
     const navigate = useNavigate();
     const [reports, setReports] = useState([]);
@@ -129,10 +128,15 @@ import { deleteReport, generateReports, getReports, getUserSavedProperties } fro
   
     const handleDownloadPDF = async (reportId) => {
       try {
-        const token = localStorage.getItem('authToken');
-        const response = await fetch(`/api/reports/${reportId}/pdf`, {
-          headers: { 'Authorization': `Bearer ${token}` }
-        });
+        const pdfData = await getReportPdf(reportId);
+        // Handle the PDF data here (probably create download link)
+        const url = window.URL.createObjectURL(new Blob([pdfData]));
+        const link = document.createElement('a');
+        link.href = url;
+        link.setAttribute('download', `report-${reportId}.pdf`);
+        document.body.appendChild(link);
+        link.click();
+        link.remove();
   
         if (response.ok) {
           const blob = await response.blob();

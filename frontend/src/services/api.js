@@ -304,18 +304,6 @@ export const saveProperty = async (propertyData) => {
   }
 };
 
-export const getRecentActivity = async () => {
-  try {
-    const response = await api.get('/analytics/recent-activity');
-    return response.data;
-  } catch (error) {
-    if (error.response) {
-      throw error.response.data?.message || 'Failed to get recent activity';
-    }
-    throw 'Failed to get recent activity.';
-  }
-};
-
 export const searchProperties = async (searchParams) => {
   try {
     const response = await api.post('/properties/search', searchParams);
@@ -560,6 +548,20 @@ export const deleteReport = async (reportId) => {
       throw error.response.data?.message || 'Failed to delete report';
     }
     throw 'Failed to delete report.';
+  }
+};
+
+export const getReportPdf = async (reportId) => {
+  try {
+    const response = await api.get(`/reports/${reportId}/pdf`, {
+      responseType: 'blob'
+    });
+    return response.data;
+  } catch (error) {
+    if (error.response) {
+      throw error.response.data?.message || 'Failed to get report PDF';
+    }
+    throw 'Failed to get report PDF.';
   }
 };
 

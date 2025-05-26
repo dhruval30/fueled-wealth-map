@@ -35,7 +35,6 @@ import { Link, useNavigate } from 'react-router-dom';
 import {
   getCompanyStats,
   getPropertyById,
-  getRecentActivity,
   getUserSavedProperties,
   getUserSearchHistory,
   getWealthEstimations,
@@ -526,10 +525,6 @@ export default function Dashboard() {
           console.warn('Failed to fetch company stats:', err);
           return { data: { topOwners: [] } };
         }),
-        getRecentActivity().catch(err => {
-          console.warn('Failed to fetch recent activity:', err);
-          return { data: [] };
-        })
       ];
 
       // Wait for all requests to complete
