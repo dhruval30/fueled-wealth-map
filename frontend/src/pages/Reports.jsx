@@ -43,21 +43,17 @@ import { deleteReport, generateReports, getReportPdf, getReports, getUserSavedPr
     const fetchData = async () => {
       try {
         setLoading(true);
-        const token = localStorage.getItem('authToken');
-        const headers = { 'Authorization': `Bearer ${token}` };
-  
-        const [reportsResponse, propertiesResponse] = await Promise.all([
+    
+        const [reportsData, propertiesData] = await Promise.all([
           getReports(),
           getUserSavedProperties()
         ]);
-  
-        const reportsData = await reportsResponse.json();
-        const propertiesData = await propertiesResponse.json();
-  
+    
+        // The data is already parsed, no need to call .json()
         if (reportsData.success) {
           setReports(reportsData.data);
         }
-  
+    
         if (propertiesData.success) {
           setSavedProperties(propertiesData.data);
         }
@@ -74,16 +70,13 @@ import { deleteReport, generateReports, getReportPdf, getReports, getUserSavedPr
         setError('Please select at least one property');
         return;
       }
-  
+    
       try {
         setGenerating(true);
         setError(null);
         
-        const token = localStorage.getItem('authToken');
-        const response = await generateReports(propertyIds, reportType);
-  
-        const data = await response.json();
-  
+        const data = await generateReports(selectedProperties, reportType);  // ✅ Fixed variable name
+    
         if (data.success) {
           setReports(prev => [...data.data, ...prev.filter(r => !data.data.find(nr => nr._id === r._id))]);
           setSelectedProperties([]);
@@ -101,12 +94,11 @@ import { deleteReport, generateReports, getReportPdf, getReports, getUserSavedPr
   
     const handleDeleteReport = async (reportId) => {
       if (!window.confirm('Are you sure you want to delete this report?')) return;
-  
+    
       try {
-        const token = localStorage.getItem('authToken');
-        const response = await deleteReport(reportId);
-  
-        if (response.ok) {
+        const data = await deleteReport(reportId);
+    
+        if (data.success) {  // ✅ Check data.success instead
           setReports(prev => prev.filter(r => r._id !== reportId));
         }
       } catch (err) {
