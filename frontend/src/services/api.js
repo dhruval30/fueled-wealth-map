@@ -2,7 +2,7 @@ import axios from 'axios';
 
 // Create an axios instance with default config
 const api = axios.create({
-  baseURL: '/api',
+  baseURL: 'https://fueled-wealth-map-dhruval.onrender.com/api',
   timeout: 30000,
   headers: {
     'Content-Type': 'application/json'
