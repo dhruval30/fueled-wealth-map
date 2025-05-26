@@ -248,7 +248,6 @@ const WealthEstimationSection = () => {
         <div className="flex items-center justify-between">
           <div>
             <h3 className="text-xl font-bold text-gray-900 mb-2 flex items-center">
-              <Brain className="h-6 w-6 mr-2 text-indigo-600" />
               AI-Powered Wealth Estimation
             </h3>
             <p className="text-gray-600">
@@ -310,7 +309,6 @@ const WealthEstimationSection = () => {
       <div className="bg-white rounded-2xl shadow-sm border border-gray-200">
         <div className="p-6 border-b border-gray-100">
           <h4 className="font-semibold text-gray-900 flex items-center">
-            <Coins className="h-5 w-5 mr-2 text-yellow-600" />
             Owner Wealth Estimations ({estimations.length})
           </h4>
         </div>

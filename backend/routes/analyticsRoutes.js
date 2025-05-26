@@ -5,7 +5,7 @@ const SearchHistory = require('../models/SearchHistory');
 const SavedProperty = require('../models/SavedProperty');
 const WealthEstimation = require('../models/WealthEstimation');
 
-// Get company statistics (existing)
+// Get company statistics (FIXED to include averageValue)
 router.get('/company-stats', protect, async (req, res) => {
   try {
     const savedProperties = await SavedProperty.find({ 
@@ -13,6 +13,8 @@ router.get('/company-stats', protect, async (req, res) => {
     });
 
     let highValueCount = 0;
+    let totalValue = 0;
+    let propertiesWithValue = 0;
     const propertyCountByOwner = {};
     const ownerValues = {};
 
@@ -23,8 +25,13 @@ router.get('/company-stats', protect, async (req, res) => {
         property.propertyData?.sale?.amount?.saleamt ||
         null;
       
-      if (marketValue && marketValue > 1000000) {
-        highValueCount++;
+      if (marketValue && typeof marketValue === 'number' && marketValue > 0) {
+        totalValue += marketValue;
+        propertiesWithValue++;
+        
+        if (marketValue > 1000000) {
+          highValueCount++;
+        }
       }
 
       const ownerName = property.propertyData?.owner?.owner1?.fullname || 'Unknown Owner';
@@ -34,6 +41,9 @@ router.get('/company-stats', protect, async (req, res) => {
         ownerValues[ownerName] = (ownerValues[ownerName] || 0) + marketValue;
       }
     });
+
+    // Calculate average value
+    const averageValue = propertiesWithValue > 0 ? Math.round(totalValue / propertiesWithValue) : 0;
 
     const topOwners = Object.entries(propertyCountByOwner)
       .sort(([,a], [,b]) => b - a)
@@ -54,8 +64,10 @@ router.get('/company-stats', protect, async (req, res) => {
       success: true,
       data: {
         totalProperties: savedProperties.length,
+        averageValue: averageValue, // NOW INCLUDED
         highValueProperties: highValueCount,
         newProperties,
+        propertiesWithValue, // Additional useful metric
         topOwners,
         lastUpdated: new Date()
       }
@@ -70,7 +82,7 @@ router.get('/company-stats', protect, async (req, res) => {
   }
 });
 
-// NEW: Get property value distribution
+// IMPROVED: Get property value distribution with better value extraction
 router.get('/property-value-distribution', protect, async (req, res) => {
   try {
     const savedProperties = await SavedProperty.find({ 
@@ -88,13 +100,10 @@ router.get('/property-value-distribution', protect, async (req, res) => {
     };
 
     savedProperties.forEach(property => {
-      const marketValue = 
-        property.propertyData?.events?.assessment?.market?.mktttlvalue || 
-        property.propertyData?.assessment?.market?.mktttlvalue ||
-        property.propertyData?.sale?.amount?.saleamt ||
-        null;
+      // More comprehensive value extraction
+      const marketValue = extractPropertyValue(property);
 
-      if (!marketValue) {
+      if (!marketValue || marketValue <= 0) {
         valueRanges['Unknown']++;
       } else if (marketValue < 500000) {
         valueRanges['Under $500K']++;
@@ -451,11 +460,44 @@ router.get('/search-patterns', protect, async (req, res) => {
   }
 });
 
-// Helper function
+// ENHANCED: Helper function to extract property value from various data structures
+function extractPropertyValue(property) {
+  // Try multiple possible paths for property value
+  const possiblePaths = [
+    property.propertyData?.events?.assessment?.market?.mktttlvalue,
+    property.propertyData?.assessment?.market?.mktttlvalue,
+    property.propertyData?.sale?.amount?.saleamt,
+    property.propertyData?.valuation?.marketValue,
+    property.propertyData?.value?.market,
+    property.propertyData?.assessedValue,
+    property.propertyData?.marketValue,
+    property.marketValue,
+    property.value
+  ];
+
+  for (const value of possiblePaths) {
+    if (value && typeof value === 'number' && value > 0) {
+      return value;
+    }
+    // Handle string values that might be formatted as currency
+    if (typeof value === 'string') {
+      const numericValue = parseFloat(value.replace(/[\$,]/g, ''));
+      if (!isNaN(numericValue) && numericValue > 0) {
+        return numericValue;
+      }
+    }
+  }
+
+  return null;
+}
+
+// Helper function for currency formatting
 function formatCurrency(value) {
-  if (!value) return 'N/A';
+  if (!value || value <= 0) return 'N/A';
   
-  if (value >= 1000000) {
+  if (value >= 1000000000) {
+    return `$${(value / 1000000000).toFixed(1)}B`;
+  } else if (value >= 1000000) {
     return `$${(value / 1000000).toFixed(1)}M`;
   } else if (value >= 1000) {
     return `$${(value / 1000).toFixed(0)}K`;
