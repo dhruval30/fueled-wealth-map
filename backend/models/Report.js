@@ -49,7 +49,8 @@ const ReportSchema = new mongoose.Schema({
 
 // Add indexes for better query performance
 ReportSchema.index({ company: 1, createdAt: -1 });
-ReportSchema.index({ savedProperty: 1 }, { unique: true });
+// CHANGE: Make unique constraint on savedProperty + reportType combination instead of just savedProperty
+ReportSchema.index({ savedProperty: 1, reportType: 1 }, { unique: true });
 ReportSchema.index({ propertyId: 1 });
 
 module.exports = mongoose.model('Report', ReportSchema);

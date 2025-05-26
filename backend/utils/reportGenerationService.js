@@ -38,9 +38,8 @@ class ReportGenerationService {
 
       const content = response.data.choices[0].message.content.trim();
       
-      // Extract summary (first paragraph or section)
-      const lines = content.split('\n').filter(line => line.trim());
-      const summary = lines.slice(0, 3).join(' ').substring(0, 200) + '...';
+      // Generate a clean summary (no hashtags or markdown)
+      const summary = this.generateCleanSummary(content, propertyData, reportType);
 
       return {
         content,
@@ -53,6 +52,94 @@ class ReportGenerationService {
       // Fallback to template report
       return this.generateFallbackReport(propertyData, reportType);
     }
+  }
+
+  generateCleanSummary(content, propertyData, reportType) {
+    const address = this.getPropertyAddress(propertyData);
+    const value = this.getPropertyValue(propertyData);
+    const propertyType = propertyData.summary?.propclass || 'Property';
+    const ownerName = propertyData.owner?.owner1?.fullname || 'Unknown Owner';
+
+    // Try to extract executive summary from content
+    let extractedSummary = '';
+    
+    // Look for executive summary section
+    const lines = content.split('\n');
+    let inExecutiveSummary = false;
+    let summaryLines = [];
+    
+    for (let line of lines) {
+      const cleanLine = line.trim();
+      
+      if (cleanLine.toLowerCase().includes('executive summary') || 
+          cleanLine.toLowerCase().includes('summary')) {
+        inExecutiveSummary = true;
+        continue;
+      }
+      
+      if (inExecutiveSummary) {
+        if (cleanLine.startsWith('#') && !cleanLine.toLowerCase().includes('summary')) {
+          break; // Hit next section
+        }
+        
+        if (cleanLine && !cleanLine.startsWith('#') && !cleanLine.startsWith('*')) {
+          // Clean the line of markdown
+          const cleanedLine = cleanLine
+            .replace(/\*\*(.*?)\*\*/g, '$1') // Remove bold
+            .replace(/\*(.*?)\*/g, '$1') // Remove italic
+            .replace(/`(.*?)`/g, '$1') // Remove code
+            .replace(/#{1,6}\s/g, '') // Remove headers
+            .trim();
+          
+          if (cleanedLine.length > 10) { // Only meaningful lines
+            summaryLines.push(cleanedLine);
+          }
+        }
+        
+        if (summaryLines.length >= 2) break; // Got enough summary
+      }
+    }
+    
+    if (summaryLines.length > 0) {
+      extractedSummary = summaryLines.join(' ').substring(0, 200);
+    }
+    
+    // If we couldn't extract a good summary, create one based on report type
+    if (!extractedSummary || extractedSummary.length < 50) {
+      switch (reportType) {
+        case 'market_analysis':
+          extractedSummary = `Market analysis for ${propertyType.toLowerCase()} at ${address}. Property owned by ${ownerName}${value ? ` with estimated value of $${value.toLocaleString()}` : ''}. Analysis includes market conditions, comparable properties, and investment potential.`;
+          break;
+          
+        case 'investment_summary':
+          extractedSummary = `Investment summary for ${propertyType.toLowerCase()} at ${address}. ${value ? `Property valued at $${value.toLocaleString()}` : 'Property'} owned by ${ownerName}. Report covers investment highlights, financial overview, and return potential.`;
+          break;
+          
+        case 'risk_assessment':
+          extractedSummary = `Risk assessment for ${propertyType.toLowerCase()} at ${address}. Property owned by ${ownerName}${value ? ` valued at $${value.toLocaleString()}` : ''}. Assessment covers market risks, physical property risks, and mitigation strategies.`;
+          break;
+          
+        default: // property_overview
+          extractedSummary = `Comprehensive overview of ${propertyType.toLowerCase()} located at ${address}. Property owned by ${ownerName}${value ? ` with estimated value of $${value.toLocaleString()}` : ''}. Report includes property details, location analysis, and market context.`;
+      }
+    }
+    
+    // Ensure summary is clean and properly truncated
+    const finalSummary = extractedSummary
+      .replace(/#{1,6}\s/g, '') // Remove any remaining headers
+      .replace(/\*\*(.*?)\*\*/g, '$1') // Remove bold
+      .replace(/\*(.*?)\*/g, '$1') // Remove italic
+      .replace(/`(.*?)`/g, '$1') // Remove code
+      .trim();
+    
+    // Truncate to reasonable length with proper ending
+    if (finalSummary.length > 250) {
+      const truncated = finalSummary.substring(0, 247);
+      const lastSpace = truncated.lastIndexOf(' ');
+      return truncated.substring(0, lastSpace > 200 ? lastSpace : 247) + '...';
+    }
+    
+    return finalSummary;
   }
 
   buildReportPrompt(propertyData, reportType) {
@@ -77,7 +164,7 @@ Size: ${propertyData.building?.size?.universalsize ? `${propertyData.building.si
 ${baseInfo}
 
 Include:
-1. Executive Summary
+1. Executive Summary (2-3 sentences about the property and market opportunity)
 2. Property Overview
 3. Market Conditions
 4. Comparable Properties Analysis
@@ -85,7 +172,7 @@ Include:
 6. Market Trends
 7. Recommendations
 
-Format as professional markdown with clear sections and bullet points.`;
+Format as professional markdown with clear sections and bullet points. Keep the executive summary concise and factual.`;
 
       case 'investment_summary':
         return `Create an investment summary report for this property:
@@ -93,15 +180,15 @@ Format as professional markdown with clear sections and bullet points.`;
 ${baseInfo}
 
 Include:
-1. Investment Highlights
-2. Financial Overview
-3. Risk Assessment
-4. Return Potential
-5. Market Position
-6. Key Considerations
+1. Executive Summary (2-3 sentences about investment highlights)
+2. Investment Highlights
+3. Financial Overview
+4. Risk Assessment
+5. Return Potential
+6. Market Position
 7. Investment Recommendation
 
-Format as professional markdown with clear sections.`;
+Format as professional markdown with clear sections. Keep the executive summary focused on investment merits.`;
 
       case 'risk_assessment':
         return `Prepare a risk assessment report for this property:
@@ -109,7 +196,7 @@ Format as professional markdown with clear sections.`;
 ${baseInfo}
 
 Include:
-1. Executive Summary
+1. Executive Summary (2-3 sentences about overall risk profile)
 2. Market Risks
 3. Physical Property Risks
 4. Financial Risks
@@ -117,7 +204,7 @@ Include:
 6. Mitigation Strategies
 7. Overall Risk Rating
 
-Format as professional markdown with clear sections.`;
+Format as professional markdown with clear sections. Keep the executive summary focused on key risk factors.`;
 
       default:
         return `Generate a comprehensive property overview report for:
@@ -125,7 +212,7 @@ Format as professional markdown with clear sections.`;
 ${baseInfo}
 
 Include:
-1. Executive Summary
+1. Executive Summary (2-3 sentences about the property and its characteristics)
 2. Property Details
 3. Location Analysis
 4. Owner Information
@@ -133,23 +220,25 @@ Include:
 6. Market Context
 7. Key Insights
 
-Format as professional markdown with clear sections and bullet points.`;
+Format as professional markdown with clear sections and bullet points. Keep the executive summary concise and informative.`;
     }
   }
 
   generateFallbackReport(propertyData, reportType) {
     const address = this.getPropertyAddress(propertyData);
     const value = this.getPropertyValue(propertyData);
+    const propertyType = propertyData.summary?.propclass || 'Property';
+    const ownerName = propertyData.owner?.owner1?.fullname || 'Unknown Owner';
     
     const content = `# ${reportType.replace('_', ' ').toUpperCase()} Report
 
 ## Executive Summary
-This report provides an analysis of the property located at ${address}.
+This report provides an analysis of the property located at ${address}. The ${propertyType.toLowerCase()} is owned by ${ownerName}${value ? ` and has an estimated value of $${value.toLocaleString()}` : ''}.
 
 ## Property Details
 - **Address**: ${address}
-- **Type**: ${propertyData.summary?.propclass || 'Property'}
-- **Owner**: ${propertyData.owner?.owner1?.fullname || 'Unknown'}
+- **Type**: ${propertyType}
+- **Owner**: ${ownerName}
 - **Value**: ${value ? `$${value.toLocaleString()}` : 'Unknown'}
 - **Year Built**: ${propertyData.summary?.yearbuilt || 'Unknown'}
 
@@ -159,9 +248,12 @@ This property represents a real estate asset in the current market. Further anal
 ## Conclusion
 Based on available data, this property appears to be a standard real estate holding requiring additional due diligence for investment decisions.`;
 
+    // Generate clean summary for fallback
+    const summary = `${reportType.replace('_', ' ')} report for ${propertyType.toLowerCase()} at ${address}. Property owned by ${ownerName}${value ? ` with estimated value of $${value.toLocaleString()}` : ''}. Analysis includes property details, location information, and market context.`;
+
     return {
       content,
-      summary: `Property report for ${address} - ${propertyData.summary?.propclass || 'Property'}`,
+      summary,
       title: `${reportType.replace('_', ' ').toUpperCase()} - ${address}`
     };
   }

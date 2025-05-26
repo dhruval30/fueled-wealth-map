@@ -192,66 +192,79 @@ router.get('/:id', protect, async (req, res) => {
 
 // Export report as PDF
 router.get('/:id/pdf', protect, async (req, res) => {
-  try {
-    const report = await Report.findById(req.params.id);
-
-    if (!report) {
-      return res.status(404).json({
+    try {
+      const report = await Report.findById(req.params.id).populate('savedProperty');
+  
+      if (!report) {
+        return res.status(404).json({
+          success: false,
+          message: 'Report not found'
+        });
+      }
+  
+      // Check if user belongs to the same company
+      if (report.company.toString() !== req.user.company.toString()) {
+        return res.status(403).json({
+          success: false,
+          message: 'Not authorized to access this report'
+        });
+      }
+  
+      // Get property address for filename
+      const propertyData = report.savedProperty?.propertyData;
+      const propertyAddress = propertyData?.fullAddress || 
+                             propertyData?.address?.oneLine || 
+                             propertyData?.address?.line1 || 
+                             'Unknown-Property';
+      
+      // Clean the address for filename (remove special characters)
+      const cleanAddress = propertyAddress
+        .replace(/[^a-zA-Z0-9\s]/g, '') // Remove special chars
+        .replace(/\s+/g, '-') // Replace spaces with hyphens
+        .substring(0, 50); // Limit length
+      
+      const filename = `${report.reportType}-${cleanAddress}.pdf`;
+      
+      res.setHeader('Content-Type', 'application/pdf');
+      res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
+      
+      // Create PDF
+      const doc = new PDFDocument();
+      doc.pipe(res);
+  
+      // Add content to PDF
+      doc.fontSize(20).text(report.title, 50, 50);
+      doc.moveDown();
+      doc.fontSize(12).text(`Generated: ${report.createdAt.toLocaleDateString()}`);
+      doc.moveDown();
+      doc.fontSize(12).text(`Report Type: ${report.reportType.replace('_', ' ').toUpperCase()}`);
+      doc.moveDown(2);
+  
+      // Convert markdown to plain text for PDF (improved)
+      const plainText = report.content
+        .replace(/#{1,6}\s/g, '') // Remove markdown headers
+        .replace(/\*\*(.*?)\*\*/g, '$1') // Remove bold markdown
+        .replace(/\*(.*?)\*/g, '$1') // Remove italic markdown
+        .replace(/`(.*?)`/g, '$1') // Remove code markdown
+        .replace(/\[(.*?)\]\(.*?\)/g, '$1') // Remove links
+        .replace(/^\s*[-*]\s/gm, '• '); // Convert bullet points
+  
+      doc.fontSize(11).text(plainText, {
+        width: 500,
+        align: 'left'
+      });
+  
+      doc.end();
+  
+    } catch (error) {
+      console.error('Error generating PDF:', error);
+      res.status(500).json({
         success: false,
-        message: 'Report not found'
+        message: 'Failed to generate PDF',
+        error: error.message
       });
     }
-
-    // Check if user belongs to the same company
-    if (report.company.toString() !== req.user.company.toString()) {
-      return res.status(403).json({
-        success: false,
-        message: 'Not authorized to access this report'
-      });
-    }
-
-    // Create PDF
-    const doc = new PDFDocument();
-    const filename = `report-${report._id}.pdf`;
-    
-    res.setHeader('Content-Type', 'application/pdf');
-    res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
-    
-    doc.pipe(res);
-
-    // Add content to PDF
-    doc.fontSize(20).text(report.title, 50, 50);
-    doc.moveDown();
-    doc.fontSize(12).text(`Generated: ${report.createdAt.toLocaleDateString()}`);
-    doc.moveDown();
-    doc.fontSize(12).text(`Report Type: ${report.reportType.replace('_', ' ').toUpperCase()}`);
-    doc.moveDown(2);
-
-    // Convert markdown to plain text for PDF (simplified)
-    const plainText = report.content
-      .replace(/#{1,6}\s/g, '') // Remove markdown headers
-      .replace(/\*\*(.*?)\*\*/g, '$1') // Remove bold markdown
-      .replace(/\*(.*?)\*/g, '$1') // Remove italic markdown
-      .replace(/`(.*?)`/g, '$1') // Remove code markdown
-      .replace(/\[(.*?)\]\(.*?\)/g, '$1'); // Remove links
-
-    doc.fontSize(11).text(plainText, {
-      width: 500,
-      align: 'left'
-    });
-
-    doc.end();
-
-  } catch (error) {
-    console.error('Error generating PDF:', error);
-    res.status(500).json({
-      success: false,
-      message: 'Failed to generate PDF',
-      error: error.message
-    });
-  }
-});
-
+  });
 // Delete a report
 router.delete('/:id', protect, async (req, res) => {
   try {

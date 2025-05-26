@@ -10,6 +10,7 @@ import {
     Plus,
     Search,
     Trash2,
+    X,
     Zap
 } from 'lucide-react';
 import React, { useEffect, useState } from 'react';
@@ -125,6 +126,18 @@ import { useNavigate } from 'react-router-dom';
         console.error('Error deleting report:', err);
       }
     };
+
+    const formatInlineMarkdown = (text) => {
+        return text
+          // Bold text: **text** -> <strong>text</strong>
+          .replace(/\*\*(.*?)\*\*/g, '<strong class="font-bold text-gray-900">$1</strong>')
+          // Italic text: *text* -> <em>text</em>
+          .replace(/\*(.*?)\*/g, '<em class="italic">$1</em>')
+          // Code: `text` -> <code>text</code>
+          .replace(/`(.*?)`/g, '<code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">$1</code>')
+          // Links: [text](url) -> <a>text</a>
+          .replace(/\[(.*?)\]\((.*?)\)/g, '<a href="$2" class="text-blue-600 hover:text-blue-800 underline" target="_blank">$1</a>');
+      };
   
     const handleDownloadPDF = async (reportId) => {
       try {
@@ -208,7 +221,6 @@ import { useNavigate } from 'react-router-dom';
                 </button>
                 <div>
                   <h1 className="text-2xl font-bold text-gray-900 flex items-center">
-                    <FileText className="h-7 w-7 mr-3 text-blue-600" />
                     Smart Reports
                   </h1>
                   <p className="text-gray-600">AI-powered property analysis reports</p>
@@ -398,13 +410,17 @@ import { useNavigate } from 'react-router-dom';
                     </div>
                     
                     <div className="flex items-center space-x-2 ml-4">
-                      <button
-                        onClick={() => setSelectedReport(report)}
-                        className="p-2 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
-                        title="View Report"
-                      >
-                        <Eye className="h-5 w-5" />
-                      </button>
+                    <button
+  onClick={(e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setSelectedReport(report);
+  }}
+  className="p-2 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+  title="View Report"
+>
+  <Eye className="h-5 w-5" />
+</button>
                       <button
                         onClick={() => handleDownloadPDF(report._id)}
                         className="p-2 text-gray-400 hover:text-green-600 hover:bg-green-50 rounded-lg transition-colors"
@@ -430,38 +446,87 @@ import { useNavigate } from 'react-router-dom';
 
       {/* Report Viewer Modal */}
       {selectedReport && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
-          <div className="bg-white rounded-lg w-full max-w-4xl max-h-[90vh] overflow-hidden">
-            <div className="p-4 border-b border-gray-200 flex justify-between items-center">
-              <h2 className="text-lg font-semibold">{selectedReport.title}</h2>
-              <button 
-                onClick={() => setSelectedReport(null)}
-                className="text-gray-500 hover:text-gray-700"
-              >
-                <X className="h-5 w-5" />
-              </button>
-            </div>
-            <div className="p-6 overflow-auto max-h-[calc(90vh-120px)]">
-              <div className="prose max-w-none">
-                {selectedReport.content.split('\n').map((line, index) => {
-                  if (line.startsWith('# ')) {
-                    return <h1 key={index} className="text-2xl font-bold mb-4">{line.substring(2)}</h1>;
-                  } else if (line.startsWith('## ')) {
-                    return <h2 key={index} className="text-xl font-semibold mb-3 mt-6">{line.substring(3)}</h2>;
-                  } else if (line.startsWith('### ')) {
-                    return <h3 key={index} className="text-lg font-medium mb-2 mt-4">{line.substring(4)}</h3>;
-                  } else if (line.startsWith('- ')) {
-                    return <li key={index} className="ml-4">{line.substring(2)}</li>;
-                  } else if (line.trim()) {
-                    return <p key={index} className="mb-3">{line}</p>;
-                  }
-                  return <br key={index} />;
-                })}
-              </div>
-            </div>
-          </div>
+  <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
+    <div className="bg-white rounded-lg w-full max-w-4xl max-h-[90vh] overflow-hidden shadow-2xl">
+      <div className="p-4 border-b border-gray-200 flex justify-between items-center bg-gray-50">
+        <div>
+          <h2 className="text-lg font-semibold text-gray-900">{selectedReport.title}</h2>
+          <p className="text-sm text-gray-500 mt-1">
+            Generated on {new Date(selectedReport.createdAt).toLocaleDateString()}
+          </p>
         </div>
-      )}
+        <button 
+          onClick={() => setSelectedReport(null)}
+          className="text-gray-500 hover:text-gray-700 p-2 hover:bg-gray-200 rounded-lg transition-colors"
+        >
+          <X className="h-5 w-5" />
+        </button>
+      </div>
+      <div className="p-6 overflow-auto max-h-[calc(90vh-120px)] bg-white">
+        <div className="prose max-w-none">
+          {selectedReport.content.split('\n').map((line, index) => {
+            const trimmedLine = line.trim();
+            
+            if (trimmedLine.startsWith('# ')) {
+              return (
+                <h1 key={index} className="text-3xl font-bold mb-6 text-gray-900 border-b pb-2">
+                  {trimmedLine.substring(2)}
+                </h1>
+              );
+            } else if (trimmedLine.startsWith('## ')) {
+              return (
+                <h2 key={index} className="text-2xl font-semibold mb-4 mt-8 text-gray-800">
+                  {trimmedLine.substring(3)}
+                </h2>
+              );
+            } else if (trimmedLine.startsWith('### ')) {
+              return (
+                <h3 key={index} className="text-xl font-medium mb-3 mt-6 text-gray-800">
+                  {trimmedLine.substring(4)}
+                </h3>
+              );
+            } else if (trimmedLine.startsWith('- ') || trimmedLine.startsWith('* ')) {
+              // Handle bullet points
+              const bulletText = trimmedLine.substring(2);
+              const formattedText = formatInlineMarkdown(bulletText);
+              return (
+                <div key={index} className="flex items-start mb-2">
+                  <span className="text-blue-600 mr-3 mt-1">•</span>
+                  <span className="text-gray-700" dangerouslySetInnerHTML={{ __html: formattedText }} />
+                </div>
+              );
+            } else if (trimmedLine && !trimmedLine.startsWith('#')) {
+              // Handle regular paragraphs with inline formatting
+              const formattedText = formatInlineMarkdown(trimmedLine);
+              return (
+                <p key={index} className="mb-4 text-gray-700 leading-relaxed text-base" 
+                   dangerouslySetInnerHTML={{ __html: formattedText }} />
+              );
+            } else if (trimmedLine === '') {
+              return <div key={index} className="mb-3"></div>;
+            }
+            return null;
+          }).filter(Boolean)}
+        </div>
+      </div>
+      <div className="p-4 border-t border-gray-200 bg-gray-50 flex justify-end space-x-3">
+        <button
+          onClick={() => handleDownloadPDF(selectedReport._id)}
+          className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors flex items-center"
+        >
+          <Download className="h-4 w-4 mr-2" />
+          Download PDF
+        </button>
+        <button
+          onClick={() => setSelectedReport(null)}
+          className="bg-gray-300 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-400 transition-colors"
+        >
+          Close
+        </button>
+      </div>
+    </div>
+  </div>
+)}
     </div>
   );
 };
