@@ -6,8 +6,8 @@ const getBaseURL = () => {
   if (import.meta.env.PROD) {
     return import.meta.env.VITE_API_URL || 'https://fueled-wealth-map-dhruval.onrender.com';
   }
-  // In development, use the proxy
-  return '/api';
+  // In development, use the proxy (no /api prefix needed as proxy handles it)
+  return '';
 };
 
 // Create an axios instance with default config
@@ -59,12 +59,7 @@ export const registerCompany = async (formData) => {
     }
     console.log('Form data entries:', formDataEntries);
     
-    // Always use the full URL for company registration to avoid proxy issues
-    const baseUrl = import.meta.env.PROD 
-      ? (import.meta.env.VITE_API_URL || 'https://fueled-wealth-map-dhruval.onrender.com')
-      : '';
-    
-    const response = await axios.post(`${baseUrl}/api/companies`, formData);
+    const response = await api.post('/api/companies', formData);
     
     console.log('Registration successful!');
     return response.data;
@@ -84,7 +79,6 @@ export const registerCompany = async (formData) => {
 // User login
 export const login = async (credentials) => {
   try {
-    // Use the API instance which already has the correct base URL
     const response = await api.post('/api/auth/login', credentials, {
       timeout: 10000
     });
@@ -385,7 +379,7 @@ export const saveApiKey = async (apiKey) => {
 export const getPropertyImageUrl = (propertyId) => {
  if (!propertyId) return null;
  const baseUrl = import.meta.env.PROD 
-   ? (import.meta.env.VITE_API_URL || 'https://your-render-backend-url.onrender.com')
+   ? (import.meta.env.VITE_API_URL || 'https://fueled-wealth-map-dhruval.onrender.com')
    : '';
  return `${baseUrl}/api/images/streetview/streetview_${propertyId}.png`;
 };
