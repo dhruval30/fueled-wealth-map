@@ -1131,7 +1131,7 @@ export default function Dashboard() {
           </div>
           
           {/* Search Bar */}
-          <div className="px-4 lg:px-6 pb-4">
+          {/* <div className="px-4 lg:px-6 pb-4">
             <div className="relative max-w-md lg:max-w-lg">
               <input
                 type="text"
@@ -1142,7 +1142,7 @@ export default function Dashboard() {
               />
               <Search className="h-5 w-5 text-slate-400 absolute left-4 top-1/2 transform -translate-y-1/2" />
             </div>
-          </div>
+          </div> */}
           
           {/* Tab Navigation */}
           <div className="px-4 lg:px-6">
@@ -1442,7 +1442,7 @@ export default function Dashboard() {
                       </div>
                     </Link>
                     
-                    <Link to="/analytics/export" className="w-full flex items-center p-3 lg:p-4 bg-gradient-to-r from-purple-50 to-violet-50 hover:from-purple-100 hover:to-violet-100 rounded-xl text-slate-800 transition-all duration-200 group border border-purple-100/50">
+                    <Link to="/analytics" className="w-full flex items-center p-3 lg:p-4 bg-gradient-to-r from-purple-50 to-violet-50 hover:from-purple-100 hover:to-violet-100 rounded-xl text-slate-800 transition-all duration-200 group border border-purple-100/50">
                       <div className="bg-purple-500 p-2 rounded-lg mr-3 lg:mr-4 group-hover:scale-110 transition-transform flex-shrink-0">
                         <BarChart3 className="h-4 lg:h-5 w-4 lg:w-5 text-white" />
                       </div>
