@@ -14,6 +14,7 @@ const PropertyMap = ({
 }) => {
   const mapRef = useRef(null);
   const mapInstance = useRef(null);
+  const layerControlRef = useRef(null);
   const [searchMarkers, setSearchMarkers] = useState([]);
   const [clickMarker, setClickMarker] = useState(null);
   const [selectedProperty, setSelectedProperty] = useState(null);
@@ -45,12 +46,54 @@ const PropertyMap = ({
           preferCanvas: true
         }).setView(startLatLng, startZoom);
         
+        // Add zoom control
         L.control.zoom({ position: 'topright' }).addTo(mapInstance.current);
         
-        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-          maxZoom: 19,
-          attribution: '© OpenStreetMap'
+        // Define tile layers
+        const baseLayers = {
+          "Street Map": L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            maxZoom: 19,
+            attribution: '© OpenStreetMap contributors'
+          }),
+          "Satellite": L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
+            maxZoom: 19,
+            attribution: '© Esri, Maxar, Earthstar Geographics'
+          }),
+          "Hybrid": L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
+            maxZoom: 19,
+            attribution: '© Esri, Maxar, Earthstar Geographics'
+          })
+        };
+
+        // Add street labels overlay for hybrid view
+        const overlayLayers = {
+          "Street Labels": L.tileLayer('https://services.arcgisonline.com/ArcGIS/rest/services/Reference/World_Boundaries_and_Places/MapServer/tile/{z}/{y}/{x}', {
+            maxZoom: 19,
+            attribution: '© Esri'
+          })
+        };
+
+        // Add default layer (Street Map)
+        baseLayers["Street Map"].addTo(mapInstance.current);
+
+        // Add layer control
+        layerControlRef.current = L.control.layers(baseLayers, overlayLayers, {
+          position: 'topleft',
+          collapsed: false
         }).addTo(mapInstance.current);
+
+        // Handle hybrid view - when satellite is selected, automatically add street labels
+        mapInstance.current.on('baselayerchange', function(e) {
+          if (e.name === 'Hybrid') {
+            if (!mapInstance.current.hasLayer(overlayLayers["Street Labels"])) {
+              overlayLayers["Street Labels"].addTo(mapInstance.current);
+            }
+          } else if (e.name === 'Street Map' || e.name === 'Satellite') {
+            if (mapInstance.current.hasLayer(overlayLayers["Street Labels"])) {
+              mapInstance.current.removeLayer(overlayLayers["Street Labels"]);
+            }
+          }
+        });
 
         if (initialState?.property) {
           const latitude = initialState.latitude || initialState.property.location?.latitude || 40.7128;
@@ -938,6 +981,13 @@ const PropertyMap = ({
                  'Search properties using the sidebar or click anywhere on the map'
              }
            </span>
+         </div>
+       </div>
+       
+       <div className="absolute top-4 left-4 z-10 bg-white/95 text-xs text-gray-600 px-2 py-1 rounded shadow-md">
+         <div className="flex items-center">
+           <span className="mr-1">🗺️</span>
+           <span>Use layer control to switch between Street, Satellite, and Hybrid views</span>
          </div>
        </div>
      </div>
