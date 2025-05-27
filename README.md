@@ -4,7 +4,9 @@ A property intelligence platform that turns real estate data into actionable ins
 
 
 Team: Cache Me If You Can
+
 Devs: Tania Solanki, Dhruval Padia, Ashish Gattu
+
 Live Link: https://fueledwealthmap.netlify.app
 
 **_PS:_** Current working branch: [`dhruval` (deployed)](https://github.com/dhruval30/fueled-wealth-map/tree/dhruval). Backup branch: [`backup` (contains local stable code)](https://github.com/dhruval30/fueled-wealth-map/tree/backup).
