@@ -4,7 +4,7 @@ const path = require('path');
 
 class WealthEstimationService {
   constructor() {
-    this.groqApiKey = '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'
+    this.groqApiKey = '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'
     this.groqBaseUrl = 'https://api.groq.com/openai/v1/chat/completions';
     this.zipCodeIncomeData = null;
     this.loadZipCodeData();
