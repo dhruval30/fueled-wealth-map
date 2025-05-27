@@ -1109,7 +1109,9 @@ export default function Dashboard() {
               </button>
               
               <div className="min-w-0 flex-1">
-                <h1 className="text-xl lg:text-3xl font-bold text-slate-900 truncate">Good morning, check</h1>
+              <h1 className="text-xl lg:text-3xl font-bold text-slate-900 truncate">
+                Hello, {userEmail.split('@')[0].charAt(0).toUpperCase() + userEmail.split('@')[0].slice(1)}
+              </h1>
                 <p className="text-sm lg:text-base text-slate-600 hidden sm:block">Here's your portfolio performance today</p>
               </div>
             </div>
