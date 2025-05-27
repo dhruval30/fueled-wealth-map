@@ -4,11 +4,16 @@ const path = require('path');
 
 class WealthEstimationService {
   constructor() {
-    this.groqApiKey = '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'
+    this.groqApiKey = process.env.GROQ_API_KEY;
     this.groqBaseUrl = 'https://api.groq.com/openai/v1/chat/completions';
     this.zipCodeIncomeData = null;
+    
+    if (!this.groqApiKey) {
+        throw new Error('GROQ_API_KEY environment variable is required');
+    }
+    
     this.loadZipCodeData();
-  }
+}
 
   async loadZipCodeData() {
     try {

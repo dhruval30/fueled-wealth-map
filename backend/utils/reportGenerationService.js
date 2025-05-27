@@ -2,9 +2,13 @@ const axios = require('axios');
 
 class ReportGenerationService {
   constructor() {
-    this.groqApiKey = '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';
+    this.groqApiKey = process.env.GROQ_API_KEY;
     this.groqBaseUrl = 'https://api.groq.com/openai/v1/chat/completions';
-  }
+    
+    if (!this.groqApiKey) {
+        throw new Error('GROQ_API_KEY environment variable is required');
+    }
+}
 
   async generatePropertyReport(propertyData, reportType = 'property_overview') {
     if (!this.groqApiKey) {
